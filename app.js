@@ -221,9 +221,57 @@ window.cerrarSesion = function() {
 window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
 window.cerrarModal = (id) => document.getElementById(id).classList.add('hidden');
 
+// ===== FUNCIÓN TOGGLE SIDEBAR MEJORADA PARA MÓVIL =====
 window.toggleSidebar = function() {
-    document.getElementById('sidebar').classList.toggle('collapsed');
+    const sidebar = document.getElementById('sidebar');
+    
+    // En móvil (menos de 768px)
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('active');
+        
+        // Crear o eliminar overlay
+        if (sidebar.classList.contains('active')) {
+            // Prevenir scroll del body
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    } else {
+        // En desktop, toggle collapse
+        sidebar.classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    }
 };
+
+// Cerrar sidebar al hacer click fuera en móvil
+document.addEventListener('click', function(event) {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    
+    if (window.innerWidth <= 768 && 
+        sidebar.classList.contains('active') && 
+        !sidebar.contains(event.target) && 
+        !menuToggle.contains(event.target)) {
+        sidebar.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
+
+// Manejar cambio de tamaño de ventana
+window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    
+    if (window.innerWidth > 768) {
+        // Modo desktop
+        sidebar.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        // Modo móvil
+        sidebar.classList.remove('collapsed');
+        mainContent.classList.remove('expanded');
+    }
+});
 
 function actualizarFecha() {
     const ahora = new Date();
