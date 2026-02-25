@@ -224,52 +224,145 @@ window.cerrarModal = (id) => document.getElementById(id).classList.add('hidden')
 // ===== FUNCIÓN TOGGLE SIDEBAR MEJORADA PARA MÓVIL =====
 window.toggleSidebar = function() {
     const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay') || crearOverlay();
+    const menuIcon = document.querySelector('#menuToggle i');
     
-    // En móvil (menos de 768px)
     if (window.innerWidth <= 768) {
-        sidebar.classList.toggle('active');
-        
-        // Crear o eliminar overlay
+        // Modo móvil
         if (sidebar.classList.contains('active')) {
-            // Prevenir scroll del body
-            document.body.style.overflow = 'hidden';
-        } else {
+            // Cerrar menú
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
             document.body.style.overflow = '';
+            document.body.style.position = '';
+            if (menuIcon) {
+                menuIcon.className = 'fa-solid fa-bars';
+            }
+        } else {
+            // Abrir menú
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            if (menuIcon) {
+                menuIcon.className = 'fa-solid fa-times';
+            }
         }
     } else {
-        // En desktop, toggle collapse
+        // Modo desktop - toggle collapse
         sidebar.classList.toggle('collapsed');
         document.getElementById('mainContent').classList.toggle('expanded');
     }
 };
 
-// Cerrar sidebar al hacer click fuera en móvil
+// Función para crear el overlay
+function crearOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'sidebarOverlay';
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+    
+    // Cerrar menú al hacer click en el overlay
+    overlay.addEventListener('click', function() {
+        cerrarMenuMovil();
+    });
+    
+    return overlay;
+}
+
+// Función para cerrar el menú en móvil
+function cerrarMenuMovil() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuIcon = document.querySelector('#menuToggle i');
+    
+    if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+        sidebar.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        if (menuIcon) {
+            menuIcon.className = 'fa-solid fa-bars';
+        }
+    }
+}
+
+// Cerrar menú al seleccionar una opción (en móvil)
 document.addEventListener('click', function(event) {
+    const target = event.target;
     const sidebar = document.getElementById('sidebar');
     const menuToggle = document.getElementById('menuToggle');
     
+    // Si se hizo click en un enlace del menú (no en el toggle)
     if (window.innerWidth <= 768 && 
         sidebar.classList.contains('active') && 
-        !sidebar.contains(event.target) && 
-        !menuToggle.contains(event.target)) {
-        sidebar.classList.remove('active');
-        document.body.style.overflow = '';
+        target.closest('.sidebar-nav a') && 
+        !target.closest('#menuToggle')) {
+        
+        // Pequeño delay para que se vea el feedback del click
+        setTimeout(() => {
+            cerrarMenuMovil();
+        }, 150);
     }
 });
 
 // Manejar cambio de tamaño de ventana
 window.addEventListener('resize', function() {
     const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('mainContent');
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuIcon = document.querySelector('#menuToggle i');
     
     if (window.innerWidth > 768) {
-        // Modo desktop
+        // Cambió a desktop
         sidebar.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
         document.body.style.overflow = '';
-    } else {
-        // Modo móvil
-        sidebar.classList.remove('collapsed');
-        mainContent.classList.remove('expanded');
+        document.body.style.position = '';
+        if (menuIcon) {
+            menuIcon.className = 'fa-solid fa-bars';
+        }
+    }
+});
+
+// Prevenir que el scroll del body afecte al menú abierto
+document.addEventListener('touchmove', function(event) {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+        // Si el target no es el sidebar o su contenido, prevenir scroll
+        if (!event.target.closest('.sidebar')) {
+            event.preventDefault();
+        }
+    }
+}, { passive: false });
+
+// Mejorar la experiencia táctil
+document.addEventListener('touchstart', function(event) {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+        // Detectar swipe hacia la izquierda para cerrar
+        const touch = event.touches[0];
+        const startX = touch.clientX;
+        
+        const handleTouchMove = function(e) {
+            const currentX = e.touches[0].clientX;
+            const diffX = currentX - startX;
+            
+            // Si swiped hacia la izquierda desde el borde del menú
+            if (diffX < -50 && startX < 100) {
+                cerrarMenuMovil();
+                document.removeEventListener('touchmove', handleTouchMove);
+                document.removeEventListener('touchend', handleTouchEnd);
+            }
+        };
+        
+        const handleTouchEnd = function() {
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+        
+        document.addEventListener('touchmove', handleTouchMove);
+        document.addEventListener('touchend', handleTouchEnd);
     }
 });
 
@@ -3979,3 +4072,4 @@ window.onload = function() {
     cargarDatosIniciales();
     abrirModal('modalLogin');
 };
+
