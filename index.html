@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Bancas Kiko - Sistema Integral</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="estilos.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- MENÚ LATERAL IZQUIERDO -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-hand-holding-heart"></i>
+                <h3>Bancas Kiko</h3>
+            </div>
+            <div class="sidebar-user" id="sidebarUserInfo">
+                <div class="user-avatar" id="sidebarAvatar">A</div>
+                <div class="user-details">
+                    <span class="user-name" id="sidebarName">Cargando...</span>
+                    <span class="user-role" id="sidebarRole">-</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav" id="sidebarNav"></nav>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="cerrarSesion()">
+                    <i class="fa-solid fa-sign-out-alt"></i> <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="main-content">
+            <div class="top-bar">
+                <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="page-title" id="pageTitle">Panel Principal</div>
+                <div class="top-bar-actions">
+                    <span class="date-badge" id="currentDate"></span>
+                </div>
+            </div>
+            <div class="content-area" id="contentArea">
+                <div class="loading-screen">
+                    <div class="loading"></div>
+                    <p>Cargando sistema...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LOGIN -->
+    <div class="modal" id="modalLogin">
+        <div class="modal-content" style="max-width: 450px;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <i class="fa-solid fa-hand-holding-heart" style="font-size: 60px; color: #1976d2;"></i>
+                <h2 style="margin-top: 10px;">Bancas Kiko</h2>
+                <p style="color: #666;">Sistema de Gestión Integral</p>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="btn" id="btnLoginAdmin" style="flex:1; background: #9b59b6; color: white;" onclick="mostrarLoginAdmin()">
+                    <i class="fa-solid fa-crown"></i> Admin
+                </button>
+                <button class="btn" id="btnLoginEmpleado" style="flex:1; background: #1976d2; color: white;" onclick="mostrarLoginEmpleado()">
+                    <i class="fa-solid fa-user-tie"></i> Empleado
+                </button>
+                <button class="btn" id="btnLoginCliente" style="flex:1; background: #27ae60; color: white;" onclick="mostrarLoginCliente()">
+                    <i class="fa-solid fa-user"></i> Cliente
+                </button>
+            </div>
+
+            <div id="loginAdminForm" style="display: none;">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-crown"></i> Usuario Admin</label>
+                    <input type="text" id="loginAdminUsuario" class="form-control" value="admin" readonly>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                    <input type="password" id="loginAdminPassword" class="form-control" placeholder="admin123">
+                </div>
+                <button class="btn" style="width: 100%; background: #9b59b6; color: white;" onclick="iniciarSesionAdmin()">
+                    <i class="fa-solid fa-crown"></i> Entrar como Admin
+                </button>
+            </div>
+
+            <div id="loginEmpleadoForm">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> Usuario</label>
+                    <input type="text" id="loginUsuario" class="form-control" placeholder="Ingrese su usuario">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="iniciarSesionEmpleado()">
+                    <i class="fa-solid fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+            </div>
+
+            <div id="loginClienteForm" style="display: none;">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> Usuario o WhatsApp</label>
+                    <input type="text" id="loginClienteUsuario" class="form-control" placeholder="Ej: 8095551212">
+                </div>
+                <button class="btn btn-success" style="width: 100%;" onclick="iniciarSesionCliente()">
+                    <i class="fa-solid fa-sign-in-alt"></i> Entrar como Cliente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CUADRE DE BANCA (EMPLEADA) - MEJORADO -->
+    <div class="modal hidden" id="modalCuadreBanca">
+        <div class="modal-content" style="max-width: 1300px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-calculator"></i> Cuadre de Banca - Por Rango de Fechas</h3>
+                <button class="modal-close" onclick="cerrarModal('modalCuadreBanca')">&times;</button>
+            </div>
+            
+            <!-- DATOS DEL ÚLTIMO CUADRE DEL ADMIN -->
+            <div style="background:#2c3e50; color:white; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <h4 style="margin:0;"><i class="fa-solid fa-clock-rotate-left"></i> Último Cuadre Administrativo</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:10px; margin-top:10px;">
+                    <div><strong>Fecha:</strong> <span id="ultimoCuadreAdminFecha">No hay registros</span></div>
+                    <div><strong>Venta Comisión:</strong> <span id="ultimoCuadreAdminComision">RD$ 0</span></div>
+                    <div><strong>Venta Central:</strong> <span id="ultimoCuadreAdminCentral">RD$ 0</span></div>
+                    <div><strong>Recargas Ext.:</strong> <span id="ultimoCuadreAdminRecargas">RD$ 0</span></div>
+                </div>
+            </div>
+
+            <!-- Selector de Rango de Fechas -->
+            <div class="filtros-card">
+                <div class="filtros-row">
+                    <div>
+                        <label><strong>Desde:</strong></label>
+                        <input type="date" id="cuadreFechaDesde" class="form-control" onchange="cargarDatosRangoBanca()">
+                    </div>
+                    <div>
+                        <label><strong>Hasta:</strong></label>
+                        <input type="date" id="cuadreFechaHasta" class="form-control" onchange="cargarDatosRangoBanca()">
+                    </div>
+                    <div>
+                        <label><strong>Fondo Inicial:</strong></label>
+                        <input type="number" id="fondoBaseBanca" class="form-control" readonly value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATOS A DIGITAR (EMPLEADA) -->
+            <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <h4>📝 DATOS A DIGITAR (VENTAS DEL DÍA)</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:15px;">
+                    <div>
+                        <label>Venta del día (Comisión):</label>
+                        <input type="number" id="ventaComision" class="form-control" min="0" step="0.01" value="0" oninput="calcularCuadreBanca()">
+                    </div>
+                    <div>
+                        <label>Venta del día (Central):</label>
+                        <input type="number" id="ventaCentral" class="form-control" min="-999999" step="0.01" value="0" oninput="calcularCuadreBanca()">
+                    </div>
+                    <div>
+                        <label>Recargas Externas:</label>
+                        <input type="number" id="recargasExternas" class="form-control" min="0" step="0.01" value="0" oninput="calcularCuadreBanca()">
+                    </div>
+                    <div>
+                        <label>Ticket Pendientes de Pago:</label>
+                        <input type="number" id="ticketsPendientesMonto" class="form-control" min="0" step="0.01" value="0" oninput="calcularCuadreBanca()">
+                    </div>
+                </div>
+                <small class="text-warning">Nota: Si la banca perdió, ingrese valores negativos en "Venta Central"</small>
+            </div>
+
+            <!-- Datos Automáticos del Rango -->
+            <div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <h4>📋 DATOS AUTOMÁTICOS DEL PERÍODO</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:15px;">
+                    <div><strong>Préstamos a Comisión:</strong> <span id="prestamosComision">RD$ 0</span></div>
+                    <div><strong>Préstamos a Central:</strong> <span id="prestamosCentral">RD$ 0</span></div>
+                    <div><strong>Devoluciones a Clientes:</strong> <span id="devolucionesPeriodo">RD$ 0</span></div>
+                    <div><strong>Depósitos/Transferencias:</strong> <span id="transferenciasPeriodo">RD$ 0</span></div>
+                    <div><strong>Total Gastos:</strong> <span id="gastosPeriodo">RD$ 0</span></div>
+                    <div><strong>Deuda Total Clientes:</strong> <span id="deudaClientesTotal">RD$ 0</span></div>
+                </div>
+            </div>
+
+            <!-- Efectivo en Caja -->
+            <h4>💰 EFECTIVO EN CAJA (DIGITAR)</h4>
+            <div class="denominaciones-grid">
+                <div><label>RD$ 2000</label><input type="number" id="billete2000" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 1000</label><input type="number" id="billete1000" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 500</label><input type="number" id="billete500" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 200</label><input type="number" id="billete200" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 100</label><input type="number" id="billete100" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 50</label><input type="number" id="billete50" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 25</label><input type="number" id="moneda25" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 10</label><input type="number" id="moneda10" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 5</label><input type="number" id="moneda5" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+                <div><label>RD$ 1</label><input type="number" id="moneda1" class="form-control" min="0" value="0" oninput="calcularEfectivo()"></div>
+            </div>
+
+            <!-- Resultados -->
+            <div class="resultados-cuadre">
+                <div class="resultado-item">
+                    <span>Total Efectivo:</span>
+                    <strong id="totalEfectivo">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Fondo Inicial:</span>
+                    <strong id="fondoBaseDisplay">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>SUMAN (+):</span>
+                    <strong id="totalSuma">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>RESTAN (-):</span>
+                    <strong id="totalResta">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Total Debería Haber:</span>
+                    <strong id="totalDeberia">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Diferencia:</span>
+                    <strong id="diferenciaCuadre">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Estado:</span>
+                    <strong id="estadoCuadre">✅ NORMAL</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Fondo Nuevo:</span>
+                    <strong id="fondoNuevo">RD$ 0</strong>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarCuadreBanca()"><i class="fa-solid fa-save"></i> Guardar Cuadre</button>
+                <button class="btn btn-primary" onclick="calcularCuadreBanca()"><i class="fa-solid fa-calculator"></i> Recalcular</button>
+                <button class="btn btn-secondary" onclick="cerrarModal('modalCuadreBanca')"><i class="fa-solid fa-times"></i> Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CUADRE ADMIN - MEJORADO -->
+    <div class="modal hidden" id="modalCuadreAdmin">
+        <div class="modal-content" style="max-width: 1300px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-invoice"></i> Cuadre General Admin - Por Rango de Fechas</h3>
+                <button class="modal-close" onclick="cerrarModal('modalCuadreAdmin')">&times;</button>
+            </div>
+            
+            <!-- Selector de Rango de Fechas -->
+            <div class="filtros-card">
+                <div class="filtros-row">
+                    <div>
+                        <label><strong>Desde:</strong></label>
+                        <input type="date" id="cuadreAdminDesde" class="form-control" onchange="cargarDatosAdmin()">
+                    </div>
+                    <div>
+                        <label><strong>Hasta:</strong></label>
+                        <input type="date" id="cuadreAdminHasta" class="form-control" onchange="cargarDatosAdmin()">
+                    </div>
+                    <div>
+                        <label><strong>Banca:</strong></label>
+                        <select id="cuadreAdminBanca" class="form-control" onchange="cargarDatosAdmin()">
+                            <option value="kiko1">Banca Kiko 1</option>
+                            <option value="kiko2">Banca Kiko 2</option>
+                            <option value="kiko3">Banca Kiko 3</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATOS A DIGITAR (ADMIN) -->
+            <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <h4>📝 REGISTRAR VENTAS DEL PERÍODO</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:15px;">
+                    <div>
+                        <label>Venta Comisión:</label>
+                        <input type="number" id="adminVentaComision" class="form-control" min="0" step="0.01" value="0" oninput="calcularCuadreAdmin()">
+                    </div>
+                    <div>
+                        <label>Venta Central:</label>
+                        <input type="number" id="adminVentaCentral" class="form-control" min="-999999" step="0.01" value="0" oninput="calcularCuadreAdmin()">
+                    </div>
+                    <div>
+                        <label>Recargas Externas:</label>
+                        <input type="number" id="adminRecargasExternas" class="form-control" min="0" step="0.01" value="0" oninput="calcularCuadreAdmin()">
+                    </div>
+                </div>
+                <small class="text-warning">Nota: Si la banca perdió, ingrese valores negativos en "Venta Central"</small>
+            </div>
+
+            <!-- Resumen Automático -->
+            <div style="background:#e8f4fd; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <h4>📋 DATOS AUTOMÁTICOS DEL PERÍODO</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:15px;">
+                    <div><strong>Fondo Inicial:</strong> <span id="adminFondoInicial">RD$ 0</span></div>
+                    <div><strong>Préstamos (+Comisión):</strong> <span id="adminPrestamosKiko">RD$ 0</span></div>
+                    <div><strong>Préstamos (+Central):</strong> <span id="adminPrestamosCentral">RD$ 0</span></div>
+                    <div><strong>Devoluciones Clientes:</strong> <span id="adminDevoluciones">RD$ 0</span></div>
+                    <div><strong>Depósitos/Transferencias:</strong> <span id="adminTransferencias">RD$ 0</span></div>
+                    <div><strong>Gastos:</strong> <span id="adminGastos">RD$ 0</span></div>
+                    <div><strong>Deuda Clientes:</strong> <span id="adminDeudaClientes">RD$ 0</span></div>
+                </div>
+            </div>
+
+            <!-- Resultados -->
+            <div class="resultados-cuadre">
+                <div class="resultado-item">
+                    <span>SUMAN (+):</span>
+                    <strong id="adminTotalSuma">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>RESTAN (-):</span>
+                    <strong id="adminTotalResta">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Total Debería Haber:</span>
+                    <strong id="adminTotalDeberia">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Fondo Final:</span>
+                    <strong id="adminFondoFinal">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Comisión Kiko:</span>
+                    <strong id="adminComisionFinal">RD$ 0</strong>
+                </div>
+                <div class="resultado-item">
+                    <span>Central:</span>
+                    <strong id="adminCentralFinal">RD$ 0</strong>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarCuadreAdmin()"><i class="fa-solid fa-save"></i> Guardar Cuadre Admin</button>
+                <button class="btn btn-info" onclick="enviarCuadreAEmpleadas()"><i class="fa-solid fa-paper-plane"></i> Enviar a Empleadas</button>
+                <button class="btn btn-secondary" onclick="cerrarModal('modalCuadreAdmin')"><i class="fa-solid fa-times"></i> Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VERIFICAR TICKET -->
+    <div class="modal hidden" id="modalVerificarTicket">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-ticket"></i> Verificar Ticket</h3>
+                <button class="modal-close" onclick="cerrarModal('modalVerificarTicket')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Ingrese el número completo del ticket:</label>
+                <input type="text" id="verificarNumeroTicket" class="form-control" placeholder="Ej: 123456" oninput="buscarTicketPorNumero()">
+            </div>
+            <div id="resultadoVerificacion" style="margin-top:20px; display:none;">
+                <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
+                    <p><strong>Número:</strong> <span id="ticketNumeroEncontrado"></span></p>
+                    <p><strong>Fecha:</strong> <span id="ticketFechaEncontrado"></span></p>
+                    <p><strong>Monto:</strong> <span id="ticketMontoEncontrado"></span></p>
+                    <p><strong>Estado:</strong> <span id="ticketEstadoEncontrado"></span></p>
+                </div>
+                <div style="margin-top:15px;">
+                    <button class="btn btn-success" onclick="solicitarPagoTicket()" id="btnSolicitarPago" disabled>💸 Solicitar Pago</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL APROBAR TICKET -->
+    <div class="modal hidden" id="modalAprobarTicket">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-check-circle"></i> Validar Ticket</h3>
+                <button class="modal-close" onclick="cerrarModal('modalAprobarTicket')">&times;</button>
+            </div>
+            <div id="ticketInfo" style="margin-bottom:20px;"></div>
+            <div class="form-group">
+                <label>Descontar de:</label>
+                <select id="descuentoTipo" class="form-control">
+                    <option value="comision">Comisión de Kiko</option>
+                    <option value="faltante">Faltante de empleada (descuento de sueldo)</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="aprobarTicket(true)">✅ Aprobar Pago</button>
+                <button class="btn btn-danger" onclick="aprobarTicket(false)">❌ Rechazar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EMPLEADA -->
+    <div class="modal hidden" id="modalEmpleada">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalEmpleadaTitulo">👤 Empleada</h3>
+                <button class="modal-close" onclick="cerrarModal('modalEmpleada')">&times;</button>
+            </div>
+            <input type="hidden" id="empleadaId">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="empleadaNombre" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="empleadaUsuario" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="text" id="empleadaPassword" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp</label>
+                <input type="text" id="empleadaWhatsapp" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Sueldo Base Quincenal</label>
+                <input type="number" id="empleadaSueldo" class="form-control" min="0" step="0.01" value="0">
+            </div>
+            <div class="form-group">
+                <label>Banca</label>
+                <select id="empleadaBanca" class="form-control">
+                    <option value="kiko1">Banca Kiko 1</option>
+                    <option value="kiko2">Banca Kiko 2</option>
+                    <option value="kiko3">Banca Kiko 3</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarEmpleada()">💾 Guardar</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalEmpleada')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CLIENTE -->
+    <div class="modal hidden" id="modalCliente">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalClienteTitulo">👤 Cliente</h3>
+                <button class="modal-close" onclick="cerrarModal('modalCliente')">&times;</button>
+            </div>
+            <input type="hidden" id="clienteId">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="clienteNombre" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="clienteUsuario" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp</label>
+                <input type="text" id="clienteWhatsapp" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Banca</label>
+                <select id="clienteBanca" class="form-control">
+                    <option value="kiko1">Banca Kiko 1</option>
+                    <option value="kiko2">Banca Kiko 2</option>
+                    <option value="kiko3">Banca Kiko 3</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label>Deuda (si debe)</label>
+                    <input type="number" id="clienteDeuda" class="form-control" value="0">
+                </div>
+                <div class="form-group half">
+                    <label>Fondo (a favor)</label>
+                    <input type="number" id="clienteFondo" class="form-control" value="0">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Mensaje para el cliente</label>
+                <textarea id="clienteMensaje" class="form-control" rows="2" placeholder="Ej: Recuerde realizar su pago..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarCliente()">💾 Guardar</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalCliente')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GASTO -->
+    <div class="modal hidden" id="modalGasto">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-receipt"></i> Registrar Gasto</h3>
+                <button class="modal-close" onclick="cerrarModal('modalGasto')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Gasto</label>
+                <select id="gastoTipo" class="form-control">
+                    <option value="dieta">🍽️ Dieta</option>
+                    <option value="bono">🎁 Bono</option>
+                    <option value="dia_libre">🏖️ Día Libre</option>
+                    <option value="limpieza">🧹 Limpieza</option>
+                    <option value="otro">📌 Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Empleada</label>
+                <select id="gastoEmpleada" class="form-control">
+                    <option value="">Seleccionar empleada</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label>Monto (RD$)</label>
+                    <input type="number" id="gastoMonto" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group half">
+                    <label>Fecha</label>
+                    <input type="date" id="gastoFecha" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="gastoDescripcion" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarGasto()">💾 Guardar Gasto</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalGasto')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DEUDA CLIENTE -->
+    <div class="modal hidden" id="modalDeuda">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-dollar-sign"></i> Registrar Deuda/Pago</h3>
+                <button class="modal-close" onclick="cerrarModal('modalDeuda')">&times;</button>
+            </div>
+            <input type="hidden" id="deudaId">
+            <div class="form-group">
+                <label>Cliente</label>
+                <select id="deudaCliente" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label>Tipo</label>
+                <select id="deudaTipo" class="form-control">
+                    <option value="deuda">➕ Aumentar Deuda (Fiado)</option>
+                    <option value="pago">➖ Pago/Abono</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Forma de Pago</label>
+                <select id="formaPago" class="form-control">
+                    <option value="efectivo">💵 Efectivo</option>
+                    <option value="transferencia">🏦 Transferencia</option>
+                    <option value="fondo">💰 Usar Fondo del Cliente</option>
+                    <option value="mixto">🔄 Mixto</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label>Monto (RD$)</label>
+                    <input type="number" id="deudaMonto" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group half">
+                    <label>Fecha</label>
+                    <input type="date" id="deudaFecha" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Concepto</label>
+                <input type="text" id="deudaConcepto" class="form-control" placeholder="Ej: Compra de tickets">
+            </div>
+            <div id="fondoInfo" style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:15px; display:none;">
+                <p><strong>💰 Fondo del cliente disponible:</strong> <span id="fondoMonto">RD$ 0</span></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarDeuda()">💾 Guardar</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalDeuda')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PREMIO CLIENTE -->
+    <div class="modal hidden" id="modalPremio">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trophy"></i> Registrar Premio</h3>
+                <button class="modal-close" onclick="cerrarModal('modalPremio')">&times;</button>
+            </div>
+            <input type="hidden" id="premioId">
+            <div class="form-group">
+                <label>Cliente</label>
+                <select id="premioCliente" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label>Loterías</label>
+                <div id="loteriasCheckbox" class="checkbox-group"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label>Monto (RD$)</label>
+                    <input type="number" id="premioMonto" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group half">
+                    <label>Fecha</label>
+                    <input type="date" id="premioFecha" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarPremio()">💾 Guardar</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalPremio')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PRÉSTAMO -->
+    <div class="modal hidden" id="modalPrestamo">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-hand-holding-dollar"></i> Registrar Préstamo</h3>
+                <button class="modal-close" onclick="cerrarModal('modalPrestamo')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Tipo</label>
+                <select id="prestamoTipo" class="form-control">
+                    <option value="kiko_comision">Banca Kiko (+ Comisión)</option>
+                    <option value="central">Central (+ Central)</option>
+                    <option value="empleada">A Empleada (Descuento de sueldo)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Banca</label>
+                <select id="prestamoBanca" class="form-control">
+                    <option value="kiko1">Banca Kiko 1</option>
+                    <option value="kiko2">Banca Kiko 2</option>
+                    <option value="kiko3">Banca Kiko 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Persona</label>
+                <select id="prestamoPersona" class="form-control"></select>
+            </div>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label>Monto (RD$)</label>
+                    <input type="number" id="prestamoMonto" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group half">
+                    <label>Fecha</label>
+                    <input type="date" id="prestamoFecha" class="form-control">
+                </div>
+            </div>
+            <div class="form-group" id="cuotasDiv">
+                <label>Cuotas para descontar</label>
+                <input type="number" id="prestamoCuotas" class="form-control" min="1" value="1">
+            </div>
+            <div class="form-group">
+                <label>Motivo</label>
+                <input type="text" id="prestamoMotivo" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarPrestamo()">💾 Guardar Préstamo</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalPrestamo')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RECORDATORIO -->
+    <div class="modal hidden" id="modalRecordatorio">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-brands fa-whatsapp"></i> Enviar Recordatorio</h3>
+                <button class="modal-close" onclick="cerrarModal('modalRecordatorio')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Cliente</label>
+                <select id="recordatorioCliente" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label>Tipo</label>
+                <select id="recordatorioTipo" class="form-control" onchange="actualizarMensajeRecordatorio()">
+                    <option value="pago">Recordatorio de Pago</option>
+                    <option value="cobrar">Tiene dinero para recoger</option>
+                    <option value="liquidar">Liquidar cuenta</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mensaje</label>
+                <textarea id="recordatorioMensaje" class="form-control" rows="4"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="enviarRecordatorio()">📱 Enviar WhatsApp</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalRecordatorio')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RETIRO DE FONDO CLIENTE (NUEVO) -->
+    <div class="modal hidden" id="modalRetiroCliente">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-hand-holding-heart"></i> Retiro de Fondo del Cliente</h3>
+                <button class="modal-close" onclick="cerrarModal('modalRetiroCliente')">&times;</button>
+            </div>
+            <div id="retiroClienteInfo" style="margin-bottom:20px;"></div>
+            <div class="form-group">
+                <label>Monto a retirar (RD$)</label>
+                <input type="number" id="retiroMonto" class="form-control" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Concepto</label>
+                <input type="text" id="retiroConcepto" class="form-control" value="Retiro de fondo a favor">
+            </div>
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="retiroFecha" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="procesarRetiroCliente()">💸 Procesar Retiro</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalRetiroCliente')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FONDOS BANCA -->
+    <div class="modal hidden" id="modalFondos">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-piggy-bank"></i> Fondos de Bancas</h3>
+                <button class="modal-close" onclick="cerrarModal('modalFondos')">&times;</button>
+            </div>
+            <div id="fondosList" class="fondos-list"></div>
+        </div>
+    </div>
+
+    <!-- MODAL NÓMINA -->
+    <div class="modal hidden" id="modalNomina">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-invoice-dollar"></i> Calcular Nómina</h3>
+                <button class="modal-close" onclick="cerrarModal('modalNomina')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Seleccionar Quincena</label>
+                <select id="nominaQuincena" class="form-control">
+                    <option value="primera">Primera Quincena (Días 1-15)</option>
+                    <option value="segunda">Segunda Quincena (Días 16-30/31)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Empleada</label>
+                <select id="nominaEmpleada" class="form-control"></select>
+            </div>
+            <div id="resultadoNomina" style="margin-top:20px;"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="calcularNomina()">📊 Calcular</button>
+                <button class="btn btn-success" onclick="pagarNominaCalculada()">💸 Pagar Nómina</button>
+                <button class="btn btn-info" onclick="enviarComprobanteNomina()">📱 Enviar Comprobante</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalNomina')">✖ Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PRÉSTAMOS EMPLEADA -->
+    <div class="modal hidden" id="modalPrestamosEmpleada">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-hand-holding-dollar"></i> Préstamos a Empleadas</h3>
+                <button class="modal-close" onclick="cerrarModal('modalPrestamosEmpleada')">&times;</button>
+            </div>
+            <div id="prestamosEmpleadaList"></div>
+        </div>
+    </div>
+
+    <!-- MODAL TRANSFERENCIA -->
+    <div class="modal hidden" id="modalTransferencia">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-money-bill-transfer"></i> Registrar Transferencia</h3>
+                <button class="modal-close" onclick="cerrarModal('modalTransferencia')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Banco Origen</label>
+                <input type="text" id="transferenciaOrigen" class="form-control" placeholder="Ej: Banco Popular">
+            </div>
+            <div class="form-group">
+                <label>Banco Destino</label>
+                <input type="text" id="transferenciaDestino" class="form-control" placeholder="Ej: BHD León">
+            </div>
+            <div class="form-group">
+                <label>Número de Referencia</label>
+                <input type="text" id="transferenciaReferencia" class="form-control" placeholder="Ej: 123456789">
+            </div>
+            <div class="form-row">
+                <div class="form-group half">
+                    <label>Monto (RD$)</label>
+                    <input type="number" id="transferenciaMonto" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="form-group half">
+                    <label>Fecha</label>
+                    <input type="date" id="transferenciaFecha" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Concepto</label>
+                <input type="text" id="transferenciaConcepto" class="form-control" placeholder="Ej: Pago a proveedor">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="guardarTransferencia()">💾 Guardar Transferencia</button>
+                <button class="btn btn-danger" onclick="cerrarModal('modalTransferencia')">✖ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HISTORIAL TRANSFERENCIAS -->
+    <div class="modal hidden" id="modalHistorialTransferencias">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Historial de Transferencias</h3>
+                <button class="modal-close" onclick="cerrarModal('modalHistorialTransferencias')">&times;</button>
+            </div>
+            <div class="filtros-card">
+                <div class="filtros-row">
+                    <div>
+                        <label>Desde</label>
+                        <input type="date" id="filtroTransferenciaDesde" class="form-control">
+                    </div>
+                    <div>
+                        <label>Hasta</label>
+                        <input type="date" id="filtroTransferenciaHasta" class="form-control">
+                    </div>
+                    <div>
+                        <label>Banca</label>
+                        <select id="filtroTransferenciaBanca" class="form-control">
+                            <option value="todas">Todas</option>
+                            <option value="kiko1">Banca Kiko 1</option>
+                            <option value="kiko2">Banca Kiko 2</option>
+                            <option value="kiko3">Banca Kiko 3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Estado</label>
+                        <select id="filtroTransferenciaEstado" class="form-control">
+                            <option value="todos">Todos</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="aprobado">Aprobado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="filtrarTransferencias()">🔍 Filtrar</button>
+                    </div>
+                </div>
+            </div>
+            <div id="transferenciasList" class="table-container"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
