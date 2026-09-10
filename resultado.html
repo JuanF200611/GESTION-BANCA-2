@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bancas Kiko - Resultados</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 10px; }
+
+  /* Ajuste cuando se abre dentro de la app (iframe) */
+  body.en-iframe {
+    padding: 8px;
+    background: transparent;
+  }
+  body.en-iframe .controls {
+    border-radius: 12px;
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+    max-width: 100%;
+  }
+
+  .controls {
+    max-width: 520px; margin: 0 auto 15px; background: #fff;
+    padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .controls h2 { font-size: 17px; margin-bottom: 10px; }
+  .controls label { display: block; font-size: 13px; margin: 8px 0 4px; color: #555; font-weight: bold; }
+  .controls input[type=date] {
+    width: 100%; padding: 8px; font-size: 14px;
+    border: 1px solid #ccc; border-radius: 6px;
+  }
+
+  .origen-group { display: flex; gap: 6px; margin-bottom: 10px; }
+  .origen-group button {
+    flex: 1; padding: 9px; font-size: 13px; font-weight: bold;
+    border: 2px solid #2c3e50; background: #fff; color: #2c3e50;
+    border-radius: 6px; cursor: pointer;
+  }
+  .origen-group button.active { background: #2c3e50; color: #fff; }
+
+  .col-group { display: flex; gap: 6px; margin-bottom: 10px; }
+  .col-group button {
+    flex: 1; padding: 9px; font-size: 13px; font-weight: bold;
+    border: 2px solid #8e44ad; background: #fff; color: #8e44ad;
+    border-radius: 6px; cursor: pointer;
+  }
+  .col-group button.active { background: #8e44ad; color: #fff; }
+
+  .loteria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px;
+    background: #fafafa;
+  }
+  .chip {
+    padding: 8px 4px; font-size: 11px; font-weight: bold; text-align: center;
+    border: 2px solid #ccc; background: #fff; color: #666;
+    border-radius: 6px; cursor: pointer; user-select: none;
+    transition: all 0.15s; line-height: 1.15; word-break: break-word;
+    min-height: 44px; display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip.activo { background: #27ae60; color: #fff; border-color: #1e8449; }
+  .chip.activo::after {
+    content: "✓"; position: absolute; top: 2px; right: 4px;
+    font-size: 10px; font-weight: 900;
+  }
+  .chip small {
+    display: block; font-size: 8px; font-weight: normal;
+    opacity: 0.75; margin-top: 2px;
+  }
+
+  .check-actions { display: flex; gap: 6px; margin-top: 6px; margin-bottom: 6px; }
+  .check-actions button {
+    flex: 1; padding: 8px; font-size: 12px;
+    background: #ecf0f1; border: 1px solid #ccc;
+    border-radius: 5px; cursor: pointer; font-weight: bold;
+  }
+
+  .btn-group { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .btn-group button {
+    flex: 1; min-width: 90px; padding: 11px; font-size: 14px;
+    font-weight: bold; border: none; border-radius: 6px;
+    cursor: pointer; color: #fff; background: #2c3e50;
+  }
+  .btn-group button.primary { background: #27ae60; }
+
+  .ticket {
+    width: 80mm; margin: 0 auto; background: #fff;
+    padding: 3mm 2.5mm;
+    font-family: 'Arial Black', Arial, sans-serif; color: #000;
+    line-height: 1.15;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  .ticket .logo-img {
+    display: block; margin: 0 auto 2px;
+    max-width: 55mm; max-height: 22mm;
+    width: auto; height: auto; object-fit: contain;
+  }
+  .ticket .logo {
+    text-align: center; font-size: 20px; font-weight: 900;
+    margin-bottom: 2px; letter-spacing: 0.5px;
+  }
+  .ticket .sub {
+    text-align: center; font-size: 9px; margin-bottom: 3px;
+    line-height: 1.25; font-family: Arial, sans-serif; font-weight: normal;
+  }
+  .ticket .titulo {
+    text-align: center; font-size: 13px; font-weight: 900;
+    margin: 3px 0; background: #000; color: #fff; padding: 3px 0;
+  }
+  .ticket .fecha { text-align: center; font-size: 11px; font-weight: bold; margin: 4px 0; }
+  .separator { border-top: 1px dashed #000; margin: 3px 0; }
+  .separator-solid { border-top: 2px solid #000; margin: 4px 0; }
+
+  .resultados-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+  }
+
+  .loteria-item {
+    border: 1.2px solid #000;
+    border-radius: 3px;
+    padding: 2px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    min-width: 0;
+  }
+  .loteria-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8px; font-weight: bold; padding: 1px 2px;
+    border-bottom: 1px solid #000; margin-bottom: 2px;
+    gap: 2px;
+  }
+  .loteria-header .nombre {
+    flex: 1; text-transform: uppercase; font-size: 8.5px;
+    word-break: break-word; line-height: 1;
+    overflow: hidden;
+  }
+  .loteria-header .hora {
+    font-size: 7px; background: #000; color: #fff;
+    padding: 1px 3px; border-radius: 2px; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .numeros-big {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    padding: 1px 0;
+  }
+  .num-bola {
+    background: #000; color: #fff;
+    font-size: 15px;
+    font-weight: 900;
+    padding: 2px 4px;
+    border-radius: 50%;
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+
+  .footer {
+    text-align: center; font-size: 12px; margin-top: 5px; font-weight: 900;
+    padding: 3px; border-top: 2px solid #000; border-bottom: 2px solid #000;
+  }
+  .qr-block {
+    text-align: center; margin-top: 6px; padding-top: 5px;
+    border-top: 1px dashed #000;
+  }
+  .qr-block .qr-titulo {
+    font-size: 10px; font-weight: 900; margin-bottom: 3px;
+    font-family: Arial, sans-serif;
+  }
+  .qr-block .qr-sub {
+    font-size: 9px; font-family: Arial, sans-serif;
+    margin-bottom: 4px; line-height: 1.2;
+  }
+  .qr-block img {
+    width: 32mm; height: 32mm; object-fit: contain;
+    display: block; margin: 0 auto 3px;
+  }
+  .qr-block .qr-user {
+    font-size: 10px; font-weight: 900; font-family: Arial, sans-serif;
+  }
+  .no-data { text-align: center; padding: 15px; font-size: 13px; color: #666; grid-column: 1 / -1; }
+
+  @media print {
+    @page { size: 80mm auto; margin: 0; }
+    body { background: #fff; padding: 0; margin: 0; }
+    .controls { display: none !important; }
+    .ticket { width: 80mm; box-shadow: none; margin: 0; padding: 2mm; }
+    .num-bola, .loteria-header .hora, .ticket .titulo {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .loteria-item { page-break-inside: avoid; }
+    .qr-block { page-break-inside: avoid; }
+  }
+</style>
+<script>
+  // Detectar si estamos dentro de un iframe (app Kiko) o abiertos directo
+  if (window.self !== window.top) {
+    document.documentElement.classList.add('en-iframe');
+  }
+</script>
+</head>
+<body>
+
+<div class="controls">
+  <h2>🖨️ Bancas Kiko - Resultados</h2>
+  <label>Fecha:</label>
+  <input type="date" id="fechaInput">
+  <label>Origen:</label>
+  <div class="origen-group">
+    <button data-origen="todas" class="active">Todas</button>
+    <button data-origen="dominicana">Dominicanas</button>
+    <button data-origen="extranjera">Extranjeras</button>
+  </div>
+
+  <label>Columnas del ticket:</label>
+  <div class="col-group">
+    <button data-cols="1">1 Columna</button>
+    <button data-cols="2" class="active">2 Columnas</button>
+  </div>
+
+  <label>Loterías (toca los cuadritos):</label>
+  <div class="check-actions">
+    <button id="btnTodas">✓ Todas</button>
+    <button id="btnNinguna">✗ Ninguna</button>
+  </div>
+  <div class="loteria-grid" id="loteriaGrid">
+    <div style="grid-column:1/-1;padding:10px;color:#888;font-size:12px;text-align:center;">Cargando...</div>
+  </div>
+  <div class="btn-group">
+    <button id="btnHoy">Hoy</button>
+    <button id="btnAyer">Ayer</button>
+    <button class="primary" id="btnImprimir">🖨️ Imprimir</button>
+  </div>
+</div>
+
+<div class="ticket" id="ticket">
+  <img src="logo2.png" alt="Bancas Kiko" class="logo-img" id="logoImg">
+  <div class="logo">BANCAS KIKO</div>
+  <div class="sub">Calle Piragua #152, San Luis, Sto. Dgo.</div>
+  <div class="separator-solid"></div>
+  <div class="titulo">RESULTADOS DE LOTERÍAS</div>
+  <div class="fecha" id="fechaTicket">--</div>
+  <div class="separator"></div>
+  <div id="resultados" class="resultados-grid"><div class="no-data">Cargando...</div></div>
+  <div class="footer">¡GRACIAS POR PREFERIRNOS!</div>
+  <div class="qr-block">
+    <div class="qr-titulo">📱 SÍGUENOS EN TELEGRAM</div>
+    <div class="qr-sub">Escanea para ver todos los resultados al instante</div>
+    <img src="qrtelegram.png" alt="QR Telegram" id="qrImg">
+    <div class="qr-user">@bancaskiko</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const contenedor = document.getElementById('resultados');
+  const fechaTicket = document.getElementById('fechaTicket');
+  const fechaInput = document.getElementById('fechaInput');
+  const loteriaGrid = document.getElementById('loteriaGrid');
+
+  document.getElementById('logoImg').addEventListener('error', () => {
+    document.getElementById('logoImg').style.display = 'none';
+  });
+  document.getElementById('qrImg').addEventListener('error', () => {
+    document.getElementById('qrImg').style.display = 'none';
+  });
+
+  const DB_URL = "https://pizarra-loteria-36ba5-default-rtdb.firebaseio.com";
+  const RUTA_RESULTADOS = "sorteos_enloteria/resultados";
+
+  const hoyRD = () => new Date(Date.now() - 4*60*60*1000).toISOString().split('T')[0];
+  let fechaSeleccionada = hoyRD();
+  let resultadosData = {};
+  let origenFiltro = 'todas';
+  let columnas = 2;
+  let loteriasActivas = new Set();
+  let todasLasLoterias = [];
+
+  const NOMBRES_PERSONALIZADOS = {
+    "Leidsa": "Quiniela Pale",
+    "Leidsa Noche": "Quiniela Pale Noche",
+    "Leidsa 4PM": "Quiniela Pale 4PM",
+    "Leidsa 9PM": "Quiniela Pale 9PM"
+  };
+
+  const CATEGORIA_MANUAL = {
+    "Loteka": "dominicana",
+    "Leidsa": "dominicana",
+    "Nacional Gana Más": "dominicana",
+    "Nacional": "dominicana",
+    "Real": "dominicana",
+    "La Primera": "dominicana",
+    "La Suerte": "dominicana",
+    "LoteDom": "dominicana",
+    "Anguilla": "extranjera",
+    "King Lottery Día": "extranjera",
+    "King Lottery Noche": "extranjera",
+    "King Lottery": "extranjera",
+    "Florida Tarde": "extranjera",
+    "Florida Noche": "extranjera",
+    "New York Tarde": "extranjera",
+    "New York Noche": "extranjera"
+  };
+
+  function nombreMostrar(nombreOriginal) {
+    if (!nombreOriginal) return '';
+    if (NOMBRES_PERSONALIZADOS[nombreOriginal]) return NOMBRES_PERSONALIZADOS[nombreOriginal];
+    for (const [clave, valor] of Object.entries(NOMBRES_PERSONALIZADOS)) {
+      if (nombreOriginal.toLowerCase().includes(clave.toLowerCase())) {
+        return valor;
+      }
+    }
+    return nombreOriginal;
+  }
+
+  function categoriaDe(nombreOriginal, r) {
+    if (!nombreOriginal) nombreOriginal = '';
+    const nombreLow = nombreOriginal.toLowerCase();
+    if (CATEGORIA_MANUAL[nombreOriginal]) return CATEGORIA_MANUAL[nombreOriginal];
+    for (const [clave, cat] of Object.entries(CATEGORIA_MANUAL)) {
+      if (nombreLow.includes(clave.toLowerCase())) return cat;
+    }
+    if (r) {
+      const cat = (r.categoria || '').toLowerCase();
+      if (cat.includes('dominic')) return 'dominicana';
+      if (cat.includes('extran') || cat.includes('foreign')) return 'extranjera';
+    }
+    const dominicanas = ['nacional', 'leidsa', 'loteka', 'real', 'la primera', 'la suerte',
+                        'lotedom', 'primera'];
+    if (dominicanas.some(d => nombreLow.includes(d))) return 'dominicana';
+    return 'extranjera';
+  }
+
+  async function cargarResultados() {
+    try {
+      const resp = await fetch(`${DB_URL}/${RUTA_RESULTADOS}.json`);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+
+      if (!data) {
+        contenedor.innerHTML = '<div class="no-data">Sin datos</div>';
+        return;
+      }
+      resultadosData = data;
+      construirChips();
+      renderizar();
+    } catch (e) {
+      contenedor.innerHTML = '<div class="no-data">Error: ' + e.message + '</div>';
+    }
+  }
+
+  function construirChips() {
+    const mapa = new Map();
+    Object.values(resultadosData).forEach(r => {
+      if (r && typeof r === 'object' && r.nombre) {
+        if (!mapa.has(r.nombre)) {
+          mapa.set(r.nombre, categoriaDe(r.nombre, r));
+        }
+      }
+    });
+
+    todasLasLoterias = [...mapa.entries()]
+      .map(([nombreOriginal, cat]) => ({
+        nombreOriginal,
+        nombre: nombreMostrar(nombreOriginal),
+        cat
+      }))
+      .sort((a,b) => a.nombre.localeCompare(b.nombre));
+
+    if (todasLasLoterias.length === 0) {
+      loteriaGrid.innerHTML = '<div style="grid-column:1/-1;padding:10px;color:#888;font-size:12px;text-align:center;">Sin loterías disponibles</div>';
+      return;
+    }
+
+    loteriasActivas = new Set(todasLasLoterias.map(l => l.nombreOriginal));
+
+    loteriaGrid.innerHTML = todasLasLoterias.map(l => `
+      <div class="chip activo" data-nombre="${l.nombreOriginal}" data-cat="${l.cat}">
+        ${l.nombre}
+        <small>${l.cat === 'dominicana' ? 'DOM' : 'EXT'}</small>
+      </div>
+    `).join('');
+
+    loteriaGrid.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const nombre = chip.dataset.nombre;
+        if (loteriasActivas.has(nombre)) {
+          loteriasActivas.delete(nombre);
+          chip.classList.remove('activo');
+        } else {
+          loteriasActivas.add(nombre);
+          chip.classList.add('activo');
+        }
+        renderizar();
+      });
+    });
+
+    actualizarVisibilidadChips();
+  }
+
+  function actualizarVisibilidadChips() {
+    loteriaGrid.querySelectorAll('.chip').forEach(chip => {
+      const cat = chip.dataset.cat;
+      let visible = true;
+      if (origenFiltro === 'dominicana') visible = (cat === 'dominicana');
+      if (origenFiltro === 'extranjera') visible = (cat === 'extranjera');
+      chip.style.display = visible ? '' : 'none';
+    });
+  }
+
+  function obtener3Numeros(r) {
+    if (!r) return ['--','--','--'];
+    const campo = r.numeros || r.numero || r.jugada || r.resultado;
+    if (campo) {
+      if (typeof campo === 'object' && !Array.isArray(campo)) {
+        const arr = Object.values(campo);
+        return [0,1,2].map(i => arr[i] != null ? String(arr[i]).padStart(2,'0') : '--');
+      }
+      if (Array.isArray(campo)) {
+        return [0,1,2].map(i => campo[i] != null ? String(campo[i]).padStart(2,'0') : '--');
+      }
+      if (typeof campo === 'string') {
+        const parts = campo.split(/[\s,\-]+/).filter(Boolean);
+        return [0,1,2].map(i => parts[i] != null ? String(parts[i]).padStart(2,'0') : '--');
+      }
+    }
+    const a = r.n1 ?? r.numero1, b = r.n2 ?? r.numero2, c = r.n3 ?? r.numero3;
+    if (a != null || b != null || c != null) {
+      return [a,b,c].map(n => n != null ? String(n).padStart(2,'0') : '--');
+    }
+    return ['--','--','--'];
+  }
+
+  function horaOrden(h) {
+    if (!h) return '99:99';
+    const m = String(h).match(/(\d+):(\d+)\s*(AM|PM)?/i);
+    if (!m) return '99:99';
+    let hr = parseInt(m[1]); const ap = (m[3]||'').toUpperCase();
+    if (ap === 'PM' && hr < 12) hr += 12;
+    if (ap === 'AM' && hr === 12) hr = 0;
+    return String(hr).padStart(2,'0') + ':' + m[2];
+  }
+
+  function parsearFechaTexto(txt) {
+    const meses = { ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06',
+                    jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12' };
+    const m = String(txt).toLowerCase().match(/(\d{1,2})\s+([a-z]{3})[a-z]*[,\s]+(\d{4})/);
+    if (!m) return null;
+    return `${m[3]}-${meses[m[2]]}-${m[1].padStart(2,'0')}`;
+  }
+
+  function extraerFechaDeClave(key) {
+    const m = String(key).match(/^(\d{4}-\d{2}-\d{2})_/);
+    return m ? m[1] : null;
+  }
+
+  function renderizar() {
+    const lista = [];
+
+    Object.entries(resultadosData).forEach(([key, r]) => {
+      let item = null;
+
+      if (r === true) {
+        const f = extraerFechaDeClave(key);
+        if (f !== fechaSeleccionada) return;
+        const partes = key.split('_');
+        const nombre = partes.slice(2, -1).join(' ') || partes[2] || key;
+        const hora = (key.match(/_(\d{1,2}:\d{2}(?:AM|PM|am|pm))/i) || [])[1] || '';
+        item = {
+          nombre: nombreMostrar(nombre),
+          _nombreOriginal: nombre,
+          numeros: null, hora, fechaRD: f
+        };
+      } else if (r && typeof r === 'object') {
+        const f = r.fechaRD || (r.fecha ? parsearFechaTexto(r.fecha) : extraerFechaDeClave(key));
+        if (f !== fechaSeleccionada) return;
+        item = {
+          ...r,
+          nombre: nombreMostrar(r.nombre),
+          _nombreOriginal: r.nombre
+        };
+      } else return;
+
+      const cat = categoriaDe(item._nombreOriginal, item);
+      if (origenFiltro === 'dominicana' && cat !== 'dominicana') return;
+      if (origenFiltro === 'extranjera' && cat !== 'extranjera') return;
+      if (!loteriasActivas.has(item._nombreOriginal)) return;
+      lista.push(item);
+    });
+
+    lista.sort((a,b) => horaOrden(a.hora).localeCompare(horaOrden(b.hora)));
+
+    const [y,m,d] = fechaSeleccionada.split('-');
+    fechaTicket.textContent = `Fecha: ${d}/${m}/${y}`;
+
+    contenedor.style.gridTemplateColumns = `repeat(${columnas}, 1fr)`;
+
+    if (lista.length === 0) {
+      contenedor.innerHTML = '<div class="no-data">No hay resultados</div>';
+      return;
+    }
+
+    contenedor.innerHTML = lista.map(r => {
+      const [n1,n2,n3] = obtener3Numeros(r);
+      return `
+        <div class="loteria-item">
+          <div class="loteria-header">
+            <div class="nombre">${r.nombre || 'Sin nombre'}</div>
+            ${r.hora ? `<div class="hora">${r.hora}</div>` : ''}
+          </div>
+          <div class="numeros-big">
+            <div class="num-bola">${n1}</div>
+            <div class="num-bola">${n2}</div>
+            <div class="num-bola">${n3}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  fechaInput.value = fechaSeleccionada;
+  fechaInput.addEventListener('change', () => { fechaSeleccionada = fechaInput.value; renderizar(); });
+
+  document.querySelectorAll('.origen-group button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.origen-group button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      origenFiltro = btn.dataset.origen;
+      actualizarVisibilidadChips();
+      if (origenFiltro === 'todas') {
+        todasLasLoterias.forEach(l => loteriasActivas.add(l.nombreOriginal));
+      } else {
+        loteriasActivas = new Set(
+          todasLasLoterias.filter(l => l.cat === origenFiltro).map(l => l.nombreOriginal)
+        );
+      }
+      loteriaGrid.querySelectorAll('.chip').forEach(chip => {
+        const visible = chip.style.display !== 'none';
+        if (visible && loteriasActivas.has(chip.dataset.nombre)) chip.classList.add('activo');
+        else if (visible) chip.classList.remove('activo');
+      });
+      renderizar();
+    });
+  });
+
+  document.querySelectorAll('.col-group button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.col-group button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      columnas = parseInt(btn.dataset.cols);
+      renderizar();
+    });
+  });
+
+  document.getElementById('btnTodas').onclick = () => {
+    loteriaGrid.querySelectorAll('.chip').forEach(chip => {
+      if (chip.style.display !== 'none') {
+        chip.classList.add('activo');
+        loteriasActivas.add(chip.dataset.nombre);
+      }
+    });
+    renderizar();
+  };
+
+  document.getElementById('btnNinguna').onclick = () => {
+    loteriaGrid.querySelectorAll('.chip').forEach(chip => {
+      if (chip.style.display !== 'none') {
+        chip.classList.remove('activo');
+        loteriasActivas.delete(chip.dataset.nombre);
+      }
+    });
+    renderizar();
+  };
+
+  document.getElementById('btnHoy').onclick = () => {
+    fechaSeleccionada = hoyRD(); fechaInput.value = fechaSeleccionada; renderizar();
+  };
+  document.getElementById('btnAyer').onclick = () => {
+    const d = new Date(hoyRD()+'T12:00:00'); d.setDate(d.getDate()-1);
+    fechaSeleccionada = d.toISOString().split('T')[0];
+    fechaInput.value = fechaSeleccionada; renderizar();
+  };
+  document.getElementById('btnImprimir').onclick = () => window.print();
+
+  cargarResultados();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pizarra Anguilla Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0c14;
+            --card-bg: #121624;
+            --card-border: #1e2538;
+            --neon-blue: #00f0ff;
+            --neon-orange: #ff7900;
+            --neon-green: #39ff14;
+            --neon-red: #e63946;
+            --text-light: #ffffff;
+            --text-muted: #8a99ad;
+            --shadow-glow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-dark); 
+            color: var(--text-light); 
+            padding: 12px;
+            min-height: 100vh;
+        }
+
+        body.en-iframe {
+            padding: 8px;
+            background: transparent;
+        }
+        body.en-iframe header { display: none; }
+
+        /* === ESTILOS CLAROS CUANDO SE ABRE DENTRO DE LA APP === */
+        body.en-iframe .panel-card {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        body.en-iframe .panel-card::before { display: none; }
+        body.en-iframe .panel-card h2 {
+            color: #0f172a;
+            border-left-color: #4f46e5;
+        }
+        body.en-iframe input[type="date"],
+        body.en-iframe input[type="text"],
+        body.en-iframe input[type="number"],
+        body.en-iframe input[type="url"] {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #0f172a;
+        }
+        body.en-iframe input:focus { border-color: #4f46e5; }
+        body.en-iframe input::placeholder { color: #94a3b8; }
+        body.en-iframe .sorteo-item,
+        body.en-iframe .ad-item {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            border-left-color: #4f46e5;
+        }
+        body.en-iframe .sorteo-item:hover { border-left-color: #ff7900; }
+        body.en-iframe .sorteo-time { color: #0f172a; }
+        body.en-iframe .ball-inp {
+            background: #ffffff;
+            border-color: #cbd5e1 !important;
+            color: #4f46e5;
+        }
+        body.en-iframe .ball-inp:focus { border-color: #ff7900 !important; }
+        body.en-iframe .ad-preview-box {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+        }
+        body.en-iframe .ad-preview-box .no-img { color: #94a3b8; }
+        body.en-iframe .ad-fields label,
+        body.en-iframe .form-group label { color: #64748b; }
+        body.en-iframe .status-badge.status-active {
+            background: #d1fae5;
+            color: #10b981;
+            border-color: #a7f3d0;
+        }
+        body.en-iframe .status-badge.status-inactive {
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fecaca;
+        }
+        body.en-iframe .slider { background-color: #cbd5e1; }
+        body.en-iframe .iframe-container { border-color: #e2e8f0; }
+        body.en-iframe .preview-badge {
+            background: rgba(15, 23, 42, 0.85);
+            color: #00f0ff;
+            border-color: #00f0ff;
+        }
+
+        .dashboard { 
+            max-width: 100%; 
+            margin: 0 auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+        }
+        
+        header { 
+            text-align: center; 
+            padding: 12px 0 16px;
+            border-bottom: 1px solid var(--card-border);
+            position: relative;
+        }
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-orange), var(--neon-blue), transparent);
+        }
+        header h1 { 
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-orange), var(--neon-blue)); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        header p {
+            color: var(--text-muted);
+            margin-top: 4px; font-size: 0.75rem;
+        }
+
+        .panel-card { 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            padding: 14px; 
+            border: 1px solid var(--card-border); 
+            box-shadow: var(--shadow-glow); 
+            position: relative;
+            overflow: hidden;
+        }
+        .panel-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--neon-orange), var(--neon-blue));
+            opacity: 0.5;
+        }
+        .panel-card h2 { 
+            font-size: 0.9rem; 
+            border-left: 3px solid var(--neon-orange); 
+            padding-left: 10px; 
+            margin-bottom: 12px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .flex-row { display: flex; flex-direction: column; gap: 8px; }
+        @media (min-width: 480px) { .flex-row { flex-direction: row; align-items: center; } }
+        .flex-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+        input[type="date"], input[type="text"], input[type="number"], input[type="url"] {
+            background: #090b12; 
+            border: 1px solid var(--card-border); 
+            color: #fff; 
+            padding: 10px 14px; 
+            border-radius: 8px; 
+            font-family: inherit; font-size: 0.9rem; 
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: var(--neon-blue); outline: none; }
+        input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+        .btn { 
+            padding: 10px 18px; 
+            border: none; border-radius: 8px; 
+            font-weight: 600; cursor: pointer; 
+            transition: all 0.2s; font-family: inherit; font-size: 0.85rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 6px; min-height: 38px; white-space: nowrap;
+        }
+        .btn-block { width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, var(--neon-orange), #e06a00); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); }
+        .btn-success { background: linear-gradient(135deg, var(--neon-green), #2ee610); color: #000; }
+        .btn-success:hover { transform: translateY(-1px); }
+        .btn-danger { background: linear-gradient(135deg, var(--neon-red), #bd2c38); color: white; }
+        .btn-danger:hover { transform: translateY(-1px); }
+        .btn-info { background: linear-gradient(135deg, var(--neon-blue), #00a8b3); color: #000; }
+        .btn-outline { background: transparent; border: 2px solid var(--card-border); color: var(--text-light); }
+
+        .live-active { 
+            background: linear-gradient(135deg, var(--neon-red), #bd2c38) !important; 
+            animation: pulseLive 1.5s infinite alternate; 
+            color: white !important; 
+        }
+
+        .sorteos-container { 
+            display: flex; flex-direction: column; gap: 10px; 
+            max-height: 60vh; overflow-y: auto; padding-right: 3px;
+        }
+        .sorteos-container::-webkit-scrollbar { width: 3px; }
+        .sorteos-container::-webkit-scrollbar-track { background: var(--bg-dark); }
+        .sorteos-container::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+
+        .sorteo-item { 
+            display: flex; flex-direction: column; gap: 8px;
+            background: linear-gradient(135deg, #171c2e, #1a2035);
+            padding: 12px 14px; border-radius: 10px;
+            border-left: 3px solid var(--neon-blue);
+            transition: border-color 0.2s;
+        }
+        .sorteo-item:hover { border-left-color: var(--neon-orange); }
+        @media (min-width: 500px) {
+            .sorteo-item { flex-direction: row; align-items: center; justify-content: space-between; }
+        }
+        .sorteo-time { font-weight: 700; font-size: 0.9rem; color: #cbd5e0; min-width: 70px; }
+
+        .balls-group { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+        .ball-inp { 
+            width: 42px; height: 42px; 
+            border-radius: 50% !important; 
+            border: 2px solid #2d3554 !important; 
+            text-align: center; 
+            font-size: 1.1rem; font-weight: 800;
+            color: var(--neon-blue); 
+            background: #0a0c14; 
+            padding: 0 !important;
+            transition: border-color 0.2s;
+        }
+        .ball-inp:focus { border-color: var(--neon-orange) !important; }
+
+        .ad-item { 
+            background: linear-gradient(135deg, #171c2e, #1a2035);
+            padding: 12px; border-radius: 10px; margin-bottom: 10px;
+            border: 1px solid var(--card-border);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .ad-row-main { display: flex; gap: 12px; align-items: flex-start; }
+        .ad-preview-box {
+            width: 70px; height: 70px; border-radius: 10px;
+            background: #090b12; border: 1px solid var(--card-border);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .ad-preview-box img, .ad-preview-box video {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .ad-preview-box .no-img {
+            font-size: 0.6rem; color: var(--text-muted); text-align: center; padding: 5px;
+        }
+        .ad-fields { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .form-group { margin-bottom: 0; }
+        .form-group label { font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px; font-weight: 500; }
+
+        .switch-container { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .switch { position: relative; display: inline-block; width: 38px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2d3554; transition: .2s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 14px; width: 14px; left: 3px; bottom: 3px;
+            background-color: white; transition: .2s; border-radius: 50%;
+        }
+        input:checked + .slider { background: linear-gradient(135deg, var(--neon-green), #2ee610); }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        .monitor-header-flex {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+        }
+        .iframe-container { 
+            width: 100%; height: 220px; background: #000; 
+            border-radius: 10px; overflow: hidden; 
+            border: 2px solid var(--card-border); position: relative;
+        }
+        .iframe-container iframe { 
+            width: 100%; height: 100%; border: none; display: block;
+        }
+        .preview-badge { 
+            position: absolute; top: 8px; left: 8px;
+            background: rgba(0,0,0,0.85); padding: 4px 12px;
+            border-radius: 6px; font-size: 0.65rem; font-weight: 600;
+            color: var(--neon-blue); border: 1px solid var(--neon-blue);
+            pointer-events: none; z-index: 10;
+        }
+
+        .save-feedback {
+            position: fixed; bottom: 20px; right: 20px;
+            background: linear-gradient(135deg, var(--neon-green), #2ee610);
+            color: #000; padding: 10px 20px; border-radius: 10px;
+            font-weight: 700; opacity: 0; transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 999; font-size: 0.85rem;
+        }
+        .save-feedback.show { opacity: 1; transform: translateY(0) scale(1); }
+
+        .status-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 16px;
+            font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+        }
+        .status-active { background: rgba(57, 255, 20, 0.2); color: var(--neon-green); border: 1px solid rgba(57, 255, 20, 0.3); }
+        .status-inactive { background: rgba(230, 57, 70, 0.2); color: var(--neon-red); border: 1px solid rgba(230, 57, 70, 0.3); }
+
+        .vista-oculta { display: none !important; }
+
+        @keyframes pulseLive { 
+            0% { box-shadow: 0 0 10px var(--neon-red); } 
+            100% { box-shadow: 0 0 25px var(--neon-red); } 
+        }
+    </style>
+    <script>
+        if (window.self !== window.top) {
+            document.documentElement.classList.add('en-iframe');
+        }
+    </script>
+</head>
+<body>
+
+<div class="dashboard">
+    <header id="mainHeader">
+        <h1>🏆 Pizarra Anguilla Admin</h1>
+        <p>Control de sorteos y anuncios para la pizarra</p>
+    </header>
+
+    <!-- ============ VISTA: RESULTADOS ============ -->
+    <div id="vistaResultados" class="vista-oculta" style="display: flex; flex-direction: column; gap: 14px;">
+
+        <div class="panel-card">
+            <div class="monitor-header-flex">
+                <h2 style="margin: 0; font-size: 0.9rem;">📺 Vista Previa de la Pizarra</h2>
+                <button class="btn btn-outline" style="min-height:30px; padding: 4px 14px; font-size:0.75rem;" onclick="recargarMonitor()">🔄 Recargar</button>
+            </div>
+            <div class="iframe-container">
+                <div class="preview-badge">📡 VISTA PREVIA</div>
+                <iframe src="https://juanf200611.github.io/PIZZARA-ANGUILLA-/" id="monitorFrame"></iframe>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <h2>⚙️ Configuración General</h2>
+            <div class="flex-row" style="margin-bottom: 10px;">
+                <label style="font-size:0.8rem; color:var(--text-muted); min-width:100px; font-weight:500;">Rotación (seg):</label>
+                <input type="number" id="globalTimeInp" placeholder="15" min="5" style="max-width: 100px;">
+                <button class="btn btn-primary" onclick="guardarTiempoGlobal()" style="padding: 8px 16px; font-size:0.8rem;">Actualizar</button>
+            </div>
+            <div class="flex-row">
+                <label style="font-size:0.8rem; color:var(--text-muted); min-width:100px; font-weight:500;">Cintillo:</label>
+                <input type="text" id="marqueeInp" placeholder="Escribe avisos aquí...">
+                <button class="btn btn-success" onclick="guardarCintillo()" style="padding: 8px 16px; font-size:0.8rem;">Actualizar</button>
+            </div>
+        </div>
+
+        <div class="panel-card" style="border: 1px solid rgba(230, 57, 70, 0.2);">
+            <h2>📡 Transmisión en Vivo</h2>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="url" id="streamingUrlInp" placeholder="https://www.youtube.com/watch?v=... o enlace directo">
+                <div class="flex-row" style="justify-content: flex-end; gap: 8px;">
+                    <button class="btn btn-danger" id="btnStopLive" onclick="detenerTransmision()" style="display:none; padding: 8px 16px; font-size:0.8rem;">■ Detener</button>
+                    <button class="btn btn-primary" id="btnStartLive" onclick="iniciarTransmision()" style="padding: 8px 16px; font-size:0.8rem;">▶ Lanzar En Vivo</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <h2>🎯 Resultados de Premios</h2>
+            <div class="flex-row" style="margin-bottom: 10px;">
+                <input type="date" id="targetDate" onchange="fetchSorteos()" style="max-width: 160px;">
+                <button class="btn btn-primary" id="btnInit" style="display:none; padding: 8px 16px; font-size:0.8rem;" onclick="crearEstructuraBase()">Inicializar Día</button>
+            </div>
+            <div class="sorteos-container" id="listado"></div>
+        </div>
+
+        <div class="panel-card" style="border: 1px solid rgba(255, 204, 0, 0.15);">
+            <h2>📊 Estadísticas en Pizarra</h2>
+            <p style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.5;">Los números <span style="color:#ff4500; font-weight:700;">calientes</span> 🔥 y <span style="color:#00bfff; font-weight:700;">fríos</span> ❄️ se muestran automáticamente.</p>
+            <button class="btn btn-info" onclick="forzarActualizarEstadisticas()" style="margin-top: 10px; padding: 8px 16px; font-size:0.8rem;">🔄 Actualizar Stats</button>
+        </div>
+
+    </div>
+
+    <!-- ============ VISTA: ANUNCIOS ============ -->
+    <div id="vistaAnuncios" class="vista-oculta" style="display: flex; flex-direction: column; gap: 14px;">
+
+        <div class="panel-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 6px;">
+                <h2 style="margin: 0; font-size: 0.9rem;">📢 Lista de Anuncios</h2>
+                <button class="btn btn-primary" style="padding: 6px 14px; font-size: 0.75rem;" onclick="agregarNuevoAnuncioVacio()">+ Añadir</button>
+            </div>
+            <div id="contenedorAnuncios" style="max-height: 60vh; overflow-y: auto; padding-right: 3px;"></div>
+            <button class="btn btn-success btn-block" style="margin-top: 12px; padding: 10px; font-size:0.9rem;" onclick="guardarTodosLosAnuncios()">💾 Guardar Todos</button>
+        </div>
+
+    </div>
+
+    <!-- ============ VISTA COMPLETA (sin parámetro URL) ============ -->
+    <div id="vistaCompleta" style="display: flex; flex-direction: column; gap: 14px;">
+        <p style="color: var(--text-muted); text-align:center; font-size: 0.85rem;">
+            Selecciona una opción:
+        </p>
+        <button class="btn btn-primary btn-block" style="padding: 16px;" onclick="mostrarVista('resultados')">
+            🎯 Colocar Resultados
+        </button>
+        <button class="btn btn-info btn-block" style="padding: 16px;" onclick="mostrarVista('anuncios')">
+            📢 Cargar Anuncios
+        </button>
+    </div>
+
+</div>
+
+<div id="saveFeedback" class="save-feedback">✓ Guardado exitosamente</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://pizarra-loteria-36ba5-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    let anunciosLocales = [];
+
+    const CRONOGRAMA_HORAS = [
+        "08:00AM", "09:00AM", "10:00AM", "11:00AM", "12:00PM", 
+        "01:00PM", "02:00PM", "03:00PM", "04:00PM", "05:00PM", 
+        "06:00PM", "07:00PM", "08:00PM", "09:00PM", "10:00PM"
+    ];
+
+    const params = new URLSearchParams(window.location.search);
+    const vistaParam = params.get('view');
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('targetDate').value = new Date().toISOString().split('T')[0];
+        fetchSorteos();
+        escucharCintillo();
+        escucharAnuncios();
+        escucharEstadoTransmision();
+        fetchConfiguracionGlobal();
+
+        if (vistaParam === 'resultados') {
+            mostrarVista('resultados');
+        } else if (vistaParam === 'anuncios') {
+            mostrarVista('anuncios');
+        } else {
+            mostrarVista('completa');
+        }
+    });
+
+    window.mostrarVista = function(cual) {
+        document.getElementById('vistaResultados').classList.add('vista-oculta');
+        document.getElementById('vistaAnuncios').classList.add('vista-oculta');
+        document.getElementById('vistaCompleta').classList.add('vista-oculta');
+
+        if (cual === 'resultados') {
+            document.getElementById('vistaResultados').classList.remove('vista-oculta');
+            document.getElementById('mainHeader').style.display = '';
+        } else if (cual === 'anuncios') {
+            document.getElementById('vistaAnuncios').classList.remove('vista-oculta');
+            document.getElementById('mainHeader').style.display = '';
+        } else {
+            document.getElementById('vistaCompleta').classList.remove('vista-oculta');
+            document.getElementById('mainHeader').style.display = '';
+        }
+    };
+
+    function mostrarFeedback(mensaje = '✓ Guardado exitosamente') {
+        const fb = document.getElementById('saveFeedback');
+        fb.textContent = mensaje;
+        fb.classList.add('show');
+        clearTimeout(fb._timeout);
+        fb._timeout = setTimeout(() => fb.classList.remove('show'), 2500);
+    }
+
+    function recargarMonitor() {
+        const frame = document.getElementById('monitorFrame');
+        if (frame) frame.src = frame.src;
+    }
+
+    function forzarActualizarEstadisticas() {
+        database.ref('stats/update').set({ timestamp: Date.now() }, err => {
+            if(!err) mostrarFeedback('✓ Estadísticas actualizadas');
+        });
+    }
+
+    function fetchConfiguracionGlobal() {
+        database.ref('configuracion/tiempoPantalla').on('value', snap => {
+            if(snap.val()) document.getElementById('globalTimeInp').value = snap.val();
+        });
+    }
+
+    function guardarTiempoGlobal() {
+        const tiempo = document.getElementById('globalTimeInp').value.trim();
+        if(!tiempo || tiempo < 5) return alert("Tiempo inválido (mínimo 5)");
+        database.ref('configuracion/tiempoPantalla').set(parseInt(tiempo), err => {
+            if(!err) mostrarFeedback('✓ Tiempo actualizado');
+        });
+    }
+
+    function escucharCintillo() {
+        database.ref('ticker').on('value', snap => {
+            if(snap.val() !== null && document.activeElement !== document.getElementById('marqueeInp')) {
+                document.getElementById('marqueeInp').value = snap.val();
+            }
+        });
+    }
+
+    function guardarCintillo() {
+        const texto = document.getElementById('marqueeInp').value;
+        database.ref('ticker').set(texto, err => {
+            if(!err) mostrarFeedback('✓ Cintillo actualizado');
+        });
+    }
+
+    function escucharEstadoTransmision() {
+        database.ref('transmisionVivo').on('value', snap => {
+            const data = snap.val();
+            const btnStart = document.getElementById('btnStartLive');
+            const btnStop = document.getElementById('btnStopLive');
+            const inpUrl = document.getElementById('streamingUrlInp');
+            if (!btnStart || !btnStop) return;
+
+            if (data && data.activo === true) {
+                btnStart.innerText = "● EN VIVO";
+                btnStart.classList.add('live-active');
+                if(document.activeElement !== inpUrl) inpUrl.value = data.url || "";
+                btnStop.style.display = "inline-flex";
+            } else {
+                btnStart.innerText = "▶ Lanzar En Vivo";
+                btnStart.classList.remove('live-active');
+                btnStop.style.display = "none";
+                if(data && data.url && document.activeElement !== inpUrl) inpUrl.value = data.url;
+            }
+        });
+    }
+
+    function iniciarTransmision() {
+        const urlValue = document.getElementById('streamingUrlInp').value.trim();
+        if(!urlValue) return alert("Introduce un enlace válido.");
+        database.ref('transmisionVivo').set({ activo: true, url: urlValue }, err => {
+            if(!err) mostrarFeedback('✓ Transmisión activada');
+        });
+    }
+
+    function detenerTransmision() {
+        const urlValue = document.getElementById('streamingUrlInp').value.trim();
+        database.ref('transmisionVivo').set({ activo: false, url: urlValue }, err => {
+            if(!err) mostrarFeedback('✓ Transmisión finalizada');
+        });
+    }
+
+    function esVideoDirecto(url) {
+        if (!url) return false;
+        const u = url.toLowerCase();
+        return u.includes('.mp4') || u.includes('.webm') || u.includes('.ogg') || 
+               u.includes('.mov') || u.includes('.avi') || u.includes('.mkv');
+    }
+
+    function esImagen(url) {
+        if (!url) return false;
+        const u = url.toLowerCase();
+        return u.includes('.jpg') || u.includes('.jpeg') || u.includes('.png') || 
+               u.includes('.gif') || u.includes('.webp') || u.includes('.bmp') || 
+               u.includes('.svg') || u.includes('.ico');
+    }
+
+    function convertirLinkGitHub(url) {
+        if (!url) return url;
+        if (url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
+            if (url.includes('/blob/')) return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            if (!url.includes('?raw=true')) return url + '?raw=true';
+        }
+        return url;
+    }
+
+    function obtenerMiniaturaUrl(url) {
+        if (!url) return "";
+        url = url.trim();
+        if (esVideoDirecto(url) || esImagen(url)) return convertirLinkGitHub(url);
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[2] && match[2].length === 11) return `https://img.youtube.com/vi/${match[2]}/mqdefault.jpg`;
+        return url;
+    }
+
+    function escucharAnuncios() {
+        database.ref('anunciosList').on('value', snap => {
+            const container = document.getElementById('contenedorAnuncios');
+            if (!container) return;
+            container.innerHTML = "";
+            anunciosLocales = [];
+            let contador = 0;
+            snap.forEach(child => {
+                const data = child.val();
+                const isActivo = data.activo !== undefined ? data.activo : true;
+                anunciosLocales.push({ url: data.url || "", tiempo: data.tiempo || 15, activo: isActivo });
+                inyectarEstructuraAnuncio(contador, data.url || "", data.tiempo || 15, isActivo);
+                contador++;
+            });
+        });
+    }
+
+    function inyectarEstructuraAnuncio(id, url="", tiempo="15", activo=true) {
+        const div = document.createElement('div');
+        div.className = "ad-item";
+        div.id = `ad_box_${id}`;
+        
+        let srcProcessed = "";
+        let isVid = false;
+        let hasPreview = false;
+        
+        if (url && url.trim() !== "") {
+            srcProcessed = obtenerMiniaturaUrl(url.trim());
+            isVid = esVideoDirecto(url);
+            hasPreview = srcProcessed !== "" && srcProcessed !== url;
+        }
+
+        div.innerHTML = `
+            <div class="ad-row-main">
+                <div class="ad-preview-box" id="preview_img_box_${id}">
+                    ${hasPreview ? (isVid ? 
+                        `<video src="${srcProcessed}" preload="metadata" muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>` : 
+                        `<img src="${srcProcessed}" style="width:100%; height:100%; object-fit:cover;">`
+                    ) : ''}
+                    <div class="no-img" id="no_img_${id}" ${hasPreview ? 'style="display:none;"' : ''}>Sin preview</div>
+                </div>
+                <div class="ad-fields">
+                    <div class="form-group">
+                        <label>URL (Imagen, YouTube o GitHub MP4):</label>
+                        <input type="url" class="input-ad-url" value="${url}" placeholder="https://..." oninput="actualizarMiniaturaDinamica(${id}, this.value)">
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; justify-content: space-between; flex-wrap: wrap;">
+                <div class="flex-wrap">
+                    <div style="width: 70px;">
+                        <label class="form-group"><span style="font-size: 0.7rem; color: var(--text-muted);">Segundos:</span></label>
+                        <input type="number" class="input-ad-time" value="${tiempo}" min="3" style="padding: 4px 8px; width: 60px; font-size:0.8rem;">
+                    </div>
+                    <div>
+                        <label class="switch-container">
+                            <div class="switch">
+                                <input type="checkbox" class="input-ad-status" ${activo ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </div>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">Activo</span>
+                        </label>
+                    </div>
+                    <span class="status-badge ${activo ? 'status-active' : 'status-inactive'}">${activo ? 'Activo' : 'Inactivo'}</span>
+                </div>
+                <button class="btn btn-danger" style="min-height: 30px; padding: 4px 12px; font-size:0.75rem;" onclick="eliminarNodoAd(${id})">🗑️</button>
+            </div>`;
+        document.getElementById('contenedorAnuncios').appendChild(div);
+    }
+
+    function actualizarMiniaturaDinamica(id, url) {
+        const box = document.getElementById(`preview_img_box_${id}`);
+        const noImgLabel = document.getElementById(`no_img_${id}`);
+        if (!box || !noImgLabel) return;
+        url = url.trim();
+        const src = obtenerMiniaturaUrl(url);
+
+        box.querySelectorAll('img, video').forEach(el => el.remove());
+
+        if (src && src !== url) {
+            if (esVideoDirecto(url)) {
+                const v = document.createElement('video');
+                v.src = src; v.preload = "metadata"; v.muted = true; v.playsInline = true;
+                v.style.width = "100%"; v.style.height = "100%"; v.style.objectFit = "cover";
+                v.onerror = () => { v.style.display = 'none'; noImgLabel.style.display = 'block'; };
+                box.insertBefore(v, noImgLabel);
+            } else {
+                const img = document.createElement('img');
+                img.src = src;
+                img.style.width = "100%"; img.style.height = "100%"; img.style.objectFit = "cover";
+                img.onerror = () => { img.style.display = 'none'; noImgLabel.style.display = 'block'; };
+                box.insertBefore(img, noImgLabel);
+            }
+            noImgLabel.style.display = 'none';
+        } else {
+            noImgLabel.style.display = 'block';
+        }
+    }
+
+    function agregarNuevoAnuncioVacio() {
+        let idSiguiente = document.querySelectorAll('.ad-item').length;
+        inyectarEstructuraAnuncio(idSiguiente, "", "15", true);
+    }
+
+    function eliminarNodoAd(id) {
+        const el = document.getElementById(`ad_box_${id}`);
+        if(el) el.remove();
+    }
+
+    function guardarTodosLosAnuncios() {
+        let lista = [];
+        document.querySelectorAll('.ad-item').forEach((box) => {
+            const urlInput = box.querySelector('.input-ad-url');
+            const timeInput = box.querySelector('.input-ad-time');
+            const statusInput = box.querySelector('.input-ad-status');
+            if(urlInput && urlInput.value.trim() !== "") {
+                lista.push({
+                    url: urlInput.value.trim(),
+                    tiempo: timeInput.value || "15",
+                    activo: statusInput.checked
+                });
+            }
+        });
+        database.ref('anunciosList').set(lista, err => {
+            if(err) alert("Error al guardar");
+            else mostrarFeedback('✓ Anuncios guardados');
+        });
+    }
+
+    function fetchSorteos() {
+        const fecha = document.getElementById('targetDate').value;
+        const listado = document.getElementById('listado');
+        if (!listado) return;
+        listado.innerHTML = "<p style='color:#a0aec0; font-size:0.9rem;'>Cargando...</p>";
+        document.getElementById('btnInit').style.display = 'none';
+
+        database.ref(`sorteos/${fecha}`).off();
+        database.ref(`sorteos/${fecha}`).on('value', snapshot => {
+            const data = snapshot.val();
+            if (document.activeElement && document.activeElement.classList.contains('ball-inp')) return;
+            listado.innerHTML = "";
+
+            if (data && Array.isArray(data) && data.length > 0) {
+                data.forEach((s, idx) => {
+                    if (!s) return;
+                    const tienePremios = s.premios && s.premios[0] && s.premios[0] !== "";
+                    listado.innerHTML += `
+                        <div class="sorteo-item">
+                            <div class="sorteo-time">${s.hora}</div>
+                            <div class="balls-group">
+                                <input type="number" inputmode="numeric" class="ball-inp" id="n_${idx}_0" value="${s.premios?.[0] || ""}" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2)" placeholder="0">
+                                <input type="number" inputmode="numeric" class="ball-inp" id="n_${idx}_1" value="${s.premios?.[1] || ""}" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2)" placeholder="0">
+                                <input type="number" inputmode="numeric" class="ball-inp" id="n_${idx}_2" value="${s.premios?.[2] || ""}" oninput="if(this.value.length > 2) this.value = this.value.slice(0,2)" placeholder="0">
+                            </div>
+                            <button class="btn btn-success" id="btn_ok_${idx}" style="min-width: 50px; padding: 6px 12px; font-size:0.8rem;" onclick="actualizarSorteo(${idx})">${tienePremios ? '✓' : 'Ok'}</button>
+                        </div>`;
+                });
+                database.ref('stats/update').set({ timestamp: Date.now() });
+            } else {
+                listado.innerHTML = "<p style='color:#718096; font-size:0.9rem;'>No hay sorteos para esta fecha.</p>";
+                document.getElementById('btnInit').style.display = 'block';
+            }
+        });
+    }
+
+    function crearEstructuraBase() {
+        const fecha = document.getElementById('targetDate').value;
+        const nuevaData = CRONOGRAMA_HORAS.map(hora => ({ fecha, hora, noche: false, premios: ["", "", ""] }));
+        database.ref(`sorteos/${fecha}`).set(nuevaData, () => { 
+            fetchSorteos(); mostrarFeedback('✓ Estructura creada');
+        });
+    }
+
+    function actualizarSorteo(idx) {
+        const fecha = document.getElementById('targetDate').value;
+        const p0 = document.getElementById(`n_${idx}_0`).value;
+        const p1 = document.getElementById(`n_${idx}_1`).value;
+        const p2 = document.getElementById(`n_${idx}_2`).value;
+        const btn = document.getElementById(`btn_ok_${idx}`);
+        btn.innerText = "⏳"; btn.disabled = true;
+        database.ref(`sorteos/${fecha}/${idx}/premios`).set([p0, p1, p2], (err) => {
+            btn.innerText = "✓"; btn.disabled = false;
+            if(!err) {
+                setTimeout(() => { btn.innerText = "Ok"; }, 800);
+                mostrarFeedback('✓ Sorteo actualizado');
+                database.ref('stats/update').set({ timestamp: Date.now() });
+            } else { alert("Error al guardar."); btn.innerText = "Ok"; }
+        });
+    }
+
+    window.recargarMonitor = recargarMonitor;
+    window.guardarTiempoGlobal = guardarTiempoGlobal;
+    window.guardarCintillo = guardarCintillo;
+    window.iniciarTransmision = iniciarTransmision;
+    window.detenerTransmision = detenerTransmision;
+    window.agregarNuevoAnuncioVacio = agregarNuevoAnuncioVacio;
+    window.eliminarNodoAd = eliminarNodoAd;
+    window.guardarTodosLosAnuncios = guardarTodosLosAnuncios;
+    window.actualizarMiniaturaDinamica = actualizarMiniaturaDinamica;
+    window.crearEstructuraBase = crearEstructuraBase;
+    window.actualizarSorteo = actualizarSorteo;
+    window.fetchSorteos = fetchSorteos;
+    window.forzarActualizarEstadisticas = forzarActualizarEstadisticas;
+</script>
+</body>
+</html>
