@@ -639,7 +639,6 @@ body {
 
 .input-row > * { flex: 1; }
 
-/* INPUT READONLY */
 .mobile-input[readonly] {
     background-color: #f3f4f6;
     cursor: not-allowed;
@@ -658,7 +657,7 @@ body {
 }
 
 /* ============================================================
-   AJUSTES PARA PANTALLAS MUY PEQUEÑAS
+   AJUSTES PARA PANTALLAS MUY PEQUEÑAS (PORTRAIT)
 ============================================================ */
 @media (max-width: 360px) {
     .card-title { font-size: 12px; }
@@ -666,4 +665,427 @@ body {
     .data-cell p { font-size: 11px; }
     .data-cell label { font-size: 8px; }
     .app-user-info h1 { font-size: 12px; }
+}
+
+/* ============================================================
+   📱 ORIENTACIÓN HORIZONTAL (LANDSCAPE)
+   Cuando el celular se gira, la app se adapta
+============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+
+    /* App bar más compacta */
+    .app-bar {
+        padding: 8px 14px;
+    }
+    .app-hamburger-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+    .app-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+    .app-user-info h1 {
+        font-size: 12px;
+    }
+    .app-user-info span {
+        font-size: 9px;
+    }
+    .app-logout-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    /* El contenido ocupa todo el ancho disponible en landscape */
+    .app-body {
+        max-width: 100%;
+        padding: 10px;
+        min-height: calc(100vh - 50px);
+    }
+
+    /* Cuando hay iframe (Resultados / Anguilla), que use toda la pantalla */
+    .app-body > div[style*="height: calc"] {
+        height: calc(100vh - 50px) !important;
+    }
+
+    /* Menú lateral más angosto */
+    .menu-lateral {
+        width: 280px;
+        max-width: 60vw;
+    }
+    .menu-header {
+        padding: 16px 18px 14px;
+    }
+    .menu-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 17px;
+    }
+    .menu-user-info h3 {
+        font-size: 14px;
+    }
+    .menu-item {
+        padding: 11px 14px;
+        font-size: 13px;
+    }
+    .menu-item i {
+        font-size: 15px;
+    }
+
+    /* Modales bottom-sheet se convierten en modales centrados */
+    .mobile-modal {
+        align-items: center;
+        justify-content: center;
+    }
+    .bottom-sheet {
+        max-width: 520px;
+        max-height: 92vh;
+        border-radius: 20px;
+        margin: auto;
+        width: 90%;
+    }
+    .login-sheet {
+        max-width: 480px !important;
+    }
+
+    /* Grid de estadísticas más amplio (4 columnas si caben) */
+    .mobile-grid-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    .mobile-grid-stats[style*="repeat(2"] {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    .stat-box-app {
+        padding: 10px;
+    }
+    .stat-box-app h4 {
+        font-size: 9px;
+    }
+    .stat-box-app p {
+        font-size: 13px;
+    }
+
+    /* Tarjetas más compactas */
+    .mobile-card {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .card-title {
+        font-size: 13px;
+    }
+    .card-row-data {
+        padding: 8px;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .data-cell p {
+        font-size: 12px;
+    }
+
+    /* Botones mini en 4 columnas si se puede */
+    .mini-btn {
+        min-width: calc(25% - 6px);
+        font-size: 9px;
+        padding: 7px 3px;
+    }
+    .mini-btn i {
+        font-size: 11px;
+    }
+
+    /* Botones generales más compactos */
+    .mobile-btn {
+        padding: 11px;
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    /* Inputs más compactos */
+    .mobile-input,
+    .mobile-textarea {
+        padding: 10px;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    .input-sublabel {
+        font-size: 9px;
+    }
+
+    /* Ocultar subtítulos y detalles */
+    .sheet-subtitle {
+        margin-bottom: 12px;
+        font-size: 12px;
+    }
+    .login-sheet h2 {
+        font-size: 17px;
+    }
+
+    /* Tabla de calculadora más compacta */
+    .cash-table td {
+        padding: 6px 3px;
+        font-size: 12px;
+    }
+    .cash-input-qty {
+        width: 60px;
+        padding: 6px;
+    }
+
+    /* Resumen más compacto */
+    .summary-box {
+        padding: 10px;
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+
+    /* Modal registrar/retirar con contenido en 2 columnas si aplica */
+    .sheet-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+/* ============================================================
+   📱 LANDSCAPE EN TABLETS (más espacio aún)
+============================================================ */
+@media (orientation: landscape) and (min-width: 768px) {
+
+    .app-body {
+        max-width: 100%;
+        padding: 16px 24px;
+    }
+
+    /* En tablets landscape, mostrar contenido en grid de 2 columnas */
+    .app-body[data-layout="cards"] {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .mobile-card {
+        padding: 16px;
+    }
+    .card-title {
+        font-size: 15px;
+    }
+    .data-cell p {
+        font-size: 14px;
+    }
+
+    .mobile-grid-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* Menú lateral más ancho */
+    .menu-lateral {
+        width: 340px;
+        max-width: 40vw;
+    }
+
+    /* Modales más amplios */
+    .bottom-sheet {
+        max-width: 640px;
+        width: 85%;
+    }
+
+    /* Botones mini en 3 columnas */
+    .mini-btn {
+        min-width: calc(33% - 8px);
+        font-size: 11px;
+        padding: 10px 6px;
+    }
+    .mini-btn i {
+        font-size: 13px;
+    }
+}
+
+/* ============================================================
+   📱 LANDSCAPE EN TABLETS GRANDES / DESKTOP
+============================================================ */
+@media (orientation: landscape) and (min-width: 1024px) {
+
+    .app-body {
+        max-width: 1200px;
+        padding: 20px 32px;
+    }
+
+    .app-body[data-layout="cards"] {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .mobile-grid-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+    .stat-box-app {
+        padding: 18px;
+    }
+    .stat-box-app h4 {
+        font-size: 11px;
+    }
+    .stat-box-app p {
+        font-size: 17px;
+    }
+
+    .menu-lateral {
+        width: 380px;
+        max-width: 35vw;
+    }
+
+    .bottom-sheet {
+        max-width: 720px;
+    }
+}
+
+/* ============================================================
+   ⚠️ ORIENTACIÓN HORIZONTAL MUY BAJA (iPhone acostado)
+   El header es lo más compacto posible
+============================================================ */
+@media (orientation: landscape) and (max-height: 400px) {
+
+    .app-bar {
+        padding: 6px 12px;
+    }
+    .app-hamburger-btn,
+    .app-avatar,
+    .app-logout-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+    .app-user-info h1 {
+        font-size: 11px;
+    }
+    .app-user-info span {
+        display: none;
+    }
+
+    .app-body {
+        padding: 8px;
+    }
+
+    .mobile-card {
+        padding: 8px;
+    }
+
+    .mobile-grid-stats {
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .stat-box-app {
+        padding: 8px;
+    }
+    .stat-box-app h4 {
+        font-size: 8px;
+    }
+    .stat-box-app p {
+        font-size: 12px;
+    }
+
+    .mobile-btn {
+        padding: 9px;
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+
+    .menu-header {
+        padding: 12px 16px 10px;
+    }
+    .menu-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+    .menu-item {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    /* Modal en landscape bajo: contenido en filas */
+    .bottom-sheet {
+        max-height: 95vh;
+        padding: 16px 14px;
+        width: 92%;
+        border-radius: 16px;
+    }
+    .sheet-handle {
+        display: none;
+    }
+    .sheet-header {
+        margin-bottom: 10px;
+    }
+    .sheet-header h3 {
+        font-size: 15px;
+    }
+
+    /* Login en 2 columnas en landscape bajo */
+    .login-sheet {
+        max-width: 90vw !important;
+        padding: 16px 20px !important;
+    }
+    .login-sheet h2 {
+        font-size: 15px;
+    }
+    .sheet-subtitle {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+    .input-group input {
+        padding: 10px;
+        font-size: 13px;
+    }
+    .tab-btn {
+        padding: 10px;
+        font-size: 11px;
+    }
+}
+
+/* ============================================================
+   ⚠️ FIX: EVITAR QUE EL CONTENIDO SE CORTE EN LANDSCAPE
+============================================================ */
+@media (orientation: landscape) {
+    /* Cuando hay iframe, altura dinámica */
+    .app-body iframe {
+        min-height: 300px;
+    }
+
+    /* Asegurar que el body no tenga padding inferior excesivo */
+    body {
+        padding-bottom: 0;
+    }
+
+    /* Modales con scroll interno si son muy altos */
+    .bottom-sheet {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Textareas más bajas en landscape */
+    .mobile-textarea {
+        min-height: 60px;
+        max-height: 120px;
+    }
+}
+
+/* ============================================================
+   🔒 BLOQUEO OPCIONAL DE ORIENTACIÓN
+   (solo si quieres forzar portrait en algunos elementos)
+============================================================ */
+@media (orientation: landscape) and (max-height: 380px) {
+    /* La calculadora de cuadre ocupa toda la pantalla */
+    #contentArea .cash-table {
+        font-size: 11px;
+    }
+    #contentArea .cash-table td {
+        padding: 4px 2px;
+    }
+    #contentArea .cash-input-qty {
+        width: 50px;
+        padding: 5px;
+        font-size: 12px;
+    }
 }
