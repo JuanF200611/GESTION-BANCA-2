@@ -14,6 +14,9 @@
 
     <header class="app-bar">
         <div class="app-bar-profile">
+            <button class="app-hamburger-btn" id="btnHamburger" onclick="toggleMenuLateral()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <div class="app-avatar" id="userAvatarHeader">?</div>
             <div class="app-user-info">
                 <h1 id="pageTitle">Identificación...</h1>
@@ -25,6 +28,23 @@
         </button>
     </header>
 
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenuLateral()"></div>
+    <aside class="menu-lateral" id="menuLateral">
+        <div class="menu-header">
+            <div class="menu-avatar" id="menuAvatar">?</div>
+            <div class="menu-user-info">
+                <h3 id="menuUserName">Invitado</h3>
+                <span id="menuUserRole">Sin sesión</span>
+            </div>
+        </div>
+        <nav class="menu-items" id="menuItems"></nav>
+        <div class="menu-footer">
+            <button class="menu-logout-btn" onclick="cerrarSesion(); toggleMenuLateral();">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
     <main class="app-body" id="contentArea">
         <div class="mobile-loader">
             <div class="spinner"></div>
@@ -32,9 +52,7 @@
         </div>
     </main>
 
-    <nav class="bottom-nav-bar" id="bottomNav"></nav>
-
-    <!-- ========== MODAL LOGIN ========== -->
+    <!-- MODAL LOGIN -->
     <div id="modalLogin" class="mobile-modal">
         <div class="bottom-sheet login-sheet">
             <div class="sheet-handle"></div>
@@ -69,7 +87,7 @@
         </div>
     </div>
 
-    <!-- ========== MODAL REGISTRAR MOVIMIENTOS (ADMIN) ========== -->
+    <!-- MODAL REGISTRAR -->
     <div id="modalRegistrarTrans" class="mobile-modal hidden">
         <div class="bottom-sheet">
             <div class="sheet-header">
@@ -78,14 +96,12 @@
             </div>
             <div class="sheet-content">
                 <input type="hidden" id="registrarTipoMovimiento">
-                
                 <label class="input-sublabel">🏦 Banca Destino</label>
                 <select id="registrarBanca" class="mobile-input">
                     <option value="kiko1">Banca Kiko 1</option>
                     <option value="kiko2">Banca Kiko 2</option>
                     <option value="kiko3">Banca Kiko 3</option>
                 </select>
-
                 <div id="wrapperTipoPrestamo" class="hidden">
                     <label class="input-sublabel">📌 Tipo de Préstamo</label>
                     <select id="registrarTipoPrestamo" class="mobile-input">
@@ -93,22 +109,18 @@
                         <option value="jesus">PRÉSTAMO JESÚS</option>
                     </select>
                 </div>
-
                 <label class="input-sublabel">💰 Monto RD$</label>
                 <input type="number" id="registrarMonto" class="mobile-input" placeholder="Monto Neto">
-                
                 <label class="input-sublabel">📝 Nota o Concepto</label>
                 <input type="text" id="registrarNota" class="mobile-input" placeholder="Detalle del movimiento">
-                
                 <label class="input-sublabel">📅 Fecha y Hora de Registro</label>
                 <input type="datetime-local" id="registrarFecha" class="mobile-input">
-                
                 <button class="mobile-btn btn-primary-filled" onclick="guardarMovimientoRegistrar()">✅ Registrar Movimiento</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== MODAL RETIRAR MOVIMIENTOS (ADMIN) ========== -->
+    <!-- MODAL RETIRAR -->
     <div id="modalRetirarTrans" class="mobile-modal hidden">
         <div class="bottom-sheet">
             <div class="sheet-header">
@@ -117,21 +129,18 @@
             </div>
             <div class="sheet-content">
                 <input type="hidden" id="retirarTipoMovimiento">
-                
                 <label class="input-sublabel">📋 Seleccione el movimiento a retirar</label>
                 <select id="retirarItemsList" class="mobile-input">
                     <option value="">Cargando...</option>
                 </select>
-
                 <label class="input-sublabel">📅 Fecha y Hora de Retiro</label>
                 <input type="datetime-local" id="retirarFecha" class="mobile-input">
-
                 <button class="mobile-btn btn-danger" onclick="retirarMovimiento()">🗑️ Retirar Movimiento</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== MODAL CLIENTE ========== -->
+    <!-- MODAL CLIENTE -->
     <div id="modalCliente" class="mobile-modal hidden">
         <div class="bottom-sheet">
             <div class="sheet-header">
@@ -140,20 +149,16 @@
             </div>
             <div class="sheet-content">
                 <input type="hidden" id="clienteId">
-                
                 <label class="input-sublabel">📛 Nombre de la Cuenta</label>
                 <input type="text" id="clienteNombre" class="mobile-input">
-                
                 <label class="input-sublabel">📱 Número de WhatsApp</label>
                 <input type="tel" id="clienteWhatsapp" class="mobile-input" placeholder="Ej: 1809XXXXXXX">
-                
                 <label class="input-sublabel">🏦 Banca Operativa</label>
                 <select id="clienteBanca" class="mobile-input">
                     <option value="kiko1">Banca Kiko 1</option>
                     <option value="kiko2">Banca Kiko 2</option>
                     <option value="kiko3">Banca Kiko 3</option>
                 </select>
-                
                 <div class="input-row">
                     <div>
                         <label class="input-sublabel">💳 Deuda Balance (RD$)</label>
@@ -164,16 +169,14 @@
                         <input type="number" id="clienteFondo" class="mobile-input">
                     </div>
                 </div>
-                
                 <p style="font-weight:700; font-size:11px; color:var(--text-muted); margin:10px 0 4px;">📊 Bitácora de Transacciones</p>
                 <div id="historialTransaccionesCliente" class="summary-box" style="max-height:200px; overflow-y:auto; font-size:11px;"></div>
-                
                 <button class="mobile-btn btn-primary-filled" onclick="guardarCliente()">💾 Actualizar Ficha</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== MODAL DEUDA/TICKET ========== -->
+    <!-- MODAL DEUDA -->
     <div id="modalDeuda" class="mobile-modal hidden">
         <div class="bottom-sheet">
             <div class="sheet-header">
@@ -183,25 +186,21 @@
             <div class="sheet-content">
                 <label class="input-sublabel">👤 Cliente Asignado</label>
                 <select id="deudaCliente" class="mobile-input"></select>
-                
                 <label class="input-sublabel">🔄 Tipo de Movimiento</label>
                 <select id="deudaTipo" class="mobile-input">
                     <option value="deuda">📝 Registrar Ticket de Venta (+)</option>
                     <option value="pago">💸 Registrar Cobro / Abono (-)</option>
                 </select>
-                
                 <label class="input-sublabel">💰 Monto en Pesos RD$</label>
                 <input type="number" id="deudaMonto" class="mobile-input" placeholder="Monto">
-                
                 <label class="input-sublabel">📝 Nota (Ej: Ticket #7810)</label>
                 <input type="text" id="deudaConcepto" class="mobile-input" placeholder="Descripción">
-                
                 <button class="mobile-btn btn-success-filled" onclick="guardarDeuda()">💾 Guardar Operación</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== MODAL RECORDATORIO WHATSAPP ========== -->
+    <!-- MODAL RECORDATORIO -->
     <div id="modalRecordatorio" class="mobile-modal hidden">
         <div class="bottom-sheet">
             <div class="sheet-header">
