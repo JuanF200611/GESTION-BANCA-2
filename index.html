@@ -1,878 +1,234 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Pizarra Anguilla | Bancas Kiko</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
-<style>
-    :root {
-        --azul-rey: #0033a0;
-        --azul-oscuro: #001a4d;
-        --rojo: #d90000;
-        --dorado: #ffcc00;
-        --blanco: #ffffff;
-        --gris-fondo: #f4f7f6;
-        --texto-oscuro: #1e293b;
-        --texto-gris: #64748b;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kiko App | La confianza en tu jugada</title>
+    <link rel="icon" type="image/png" href="nuevologo.png">
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    html, body {
-        height: 100dvh; width: 100dvw;
-        overflow: hidden;
-        background-color: #041233;
-    }
+    <link rel="stylesheet" href="estilos.css">
 
-    /* SPLASH */
-    #splash-screen {
-        position: fixed; inset: 0;
-        background-color: #041233;
-        z-index: 999999;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        transition: opacity 0.5s ease-in-out, visibility 0.5s;
-    }
-    .splash-logo { height: 250px; object-fit: contain; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); }
-    .splash-text { color: var(--blanco); font-size: 32px; font-weight: 900; margin-top: 20px; }
-    .splash-sub { color: var(--dorado); font-size: 18px; font-weight: 700; margin-top: 10px; }
-
-    /* CANVAS MASTER */
-    #canvas-master {
-        position: absolute; top: 50%; left: 50%;
-        width: 1920px; height: 1080px;
-        background-color: #041233;
-        transform: translate(-50%, -50%) scale(1);
-        transform-origin: center center;
-        overflow: hidden;
-        will-change: transform;
-        display: flex; flex-direction: column;
-    }
-
-    /* HEADER */
-    .topbar {
-        width: calc(100% - 16px);
-        margin: 6px 8px 0 8px;
-        height: 92px;
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 30px;
-        background: #001a4d;
-        border-radius: 20px;
-        border-bottom: 4px solid var(--dorado);
-        position: relative; z-index: 5;
-        flex-shrink: 0;
-    }
-    .brand-area { display: flex; align-items: center; gap: 16px; height: 100%; }
-    .brand-area img { height: 72px; object-fit: contain; }
-    .brand-text { display: flex; flex-direction: column; justify-content: center; line-height: 1; }
-    .brand-title { font-size: 26px; font-weight: 900; color: var(--blanco); text-transform: uppercase; }
-    .brand-title span { color: var(--dorado); }
-    .brand-slogan { font-size: 12px; font-weight: 600; color: #cbd5e1; letter-spacing: 1.6px; margin-top: 5px; }
-
-    .header-info { display: flex; align-items: center; gap: 25px; }
-    .header-clock { font-size: 52px; font-weight: 900; color: var(--blanco); border-right: 4px solid rgba(255, 204, 0, 0.4); padding-right: 25px; }
-    .date-header { text-align: right; }
-    .main-date { font-size: 26px; font-weight: 900; color: var(--dorado); text-transform: uppercase; }
-    .sub-date { font-size: 15px; font-weight: 700; color: var(--blanco); }
-
-    /* TICKER */
-    .ticker-bar {
-        width: calc(100% - 16px);
-        margin: 6px 8px 0 8px;
-        height: 46px;
-        background: var(--rojo);
-        border-radius: 14px;
-        overflow: hidden; display: flex; align-items: center;
-        border-bottom: 4px solid var(--dorado);
-        flex-shrink: 0;
-        position: relative; z-index: 5;
-    }
-    .ticker-text {
-        white-space: nowrap; font-size: 24px; font-weight: 800; color: var(--blanco);
-        will-change: transform;
-        animation: marquee 30s linear infinite; padding-left: 100%;
-    }
-    @keyframes marquee { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-100%,0,0); } }
-
-    /* VISTAS */
-    #view-grid, #view-featured, #view-ads, #view-live {
-        flex: 1; padding: 6px 8px;
-        position: relative; opacity: 1; visibility: visible;
-        transition: opacity 0.3s ease, visibility 0.3s;
-        overflow: hidden;
-    }
-    .hidden { opacity: 0 !important; visibility: hidden !important; position: absolute !important; inset: 0 !important; pointer-events: none; }
-    #view-ads, #view-live { padding: 0; background: #000; }
-
-    /* BRANDING */
-    #view-branding {
-        position: absolute !important;
-        inset: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 99999 !important;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        background-color: #041233;
-        padding: 20px; text-align: center;
-        opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0.3s;
-    }
-    #view-branding.hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none; }
-    .branding-logo { height: 400px; max-width: 90vw; object-fit: contain; }
-    .branding-title { font-size: 80px; font-weight: 900; color: var(--blanco); margin-top: 20px; letter-spacing: 4px; }
-    .branding-title span { color: var(--dorado); }
-    .branding-slogan { font-size: 30px; font-weight: 700; color: var(--dorado); margin-top: 15px; letter-spacing: 8px; }
-    .branding-tag { margin-top: 30px; font-size: 24px; font-weight: 800; color: #cbd5e1; background: rgba(0,0,0,0.5); padding: 12px 40px; border-radius: 50px; border: 2px solid var(--dorado); }
-
-    /* GRID */
-    .grid-container {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(2, 1fr);
-        gap: 10px;
-        height: 100%;
-        width: 100%;
-    }
-    .card {
-        background: var(--blanco);
-        border-radius: 16px;
-        padding: 10px 10px 8px 10px;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: space-between;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        border-top: 8px solid var(--dorado);
-        position: relative;
-        min-height: 0;
-        overflow: hidden;
-    }
-    .card.proximo {
-        border-top-color: var(--rojo);
-        transform: scale(1.02);
-        z-index: 5;
-    }
-
-    .card-logo { height: 100px; object-fit: contain; margin-bottom: 2px; }
-
-    .card-nombre-hora {
-        display: flex; align-items: baseline; justify-content: center;
-        gap: 10px; flex-wrap: wrap; margin-bottom: 4px;
-    }
-    .card-nombre {
-        font-weight: 900; font-size: 26px; color: var(--azul-rey);
-        text-transform: uppercase; text-align: center; line-height: 1;
-    }
-    .card-hora-inline {
-        font-weight: 900; font-size: 24px; color: var(--rojo);
-        background: #fee2e2; padding: 2px 12px; border-radius: 12px;
-        line-height: 1.2; white-space: nowrap;
-    }
-
-    .card-fecha {
-        font-size: 17px; font-weight: 900; color: #15803d; background: #dcfce7;
-        padding: 4px 18px; border-radius: 20px; margin-bottom: 6px;
-    }
-    .card-fecha.ayer { color: var(--rojo); background: #fee2e2; }
-
-    .bolos-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 4px;
-        flex: 1 1 auto;
-        width: 100%;
-        min-height: 0;
-        overflow: hidden;
-    }
-    .bolo-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: center; }
-    .bolo {
-        width: 130px; height: 130px;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 900; font-size: 62px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        border: 2px solid rgba(255,255,255,0.2);
-    }
-    .bolo.hoy { background: #2563eb; color: white; }
-    .bolo.ayer { background: #ffffff; color: var(--azul-oscuro); border-color: #cbd5e1; }
-
-    .bolo-label {
-        font-size: 13px; font-weight: 900; color: var(--texto-gris);
-        text-transform: uppercase; background: #e2e8f0; padding: 2px 10px; border-radius: 6px;
-    }
-
-    .card-timer {
-        font-size: 20px; font-weight: 900; color: var(--rojo);
-        background: #fee2e2; padding: 6px 18px; border-radius: 12px;
-        margin-bottom: 6px; border: 2px solid var(--rojo);
-    }
-
-    /* Pie "Anguilla" eliminado */
-    .card-footer { display: none; }
-
-    /* VISTA FEATURED - TODO MÁS GRANDE */
-    .split-container { display: flex; gap: 18px; height: 100%; width: 100%; padding: 6px; }
-
-    .split-main {
-        flex: 1;
-        background-color: #061f4a;
-        border: 8px solid var(--dorado);
-        border-radius: 30px;
-        display: flex; flex-direction: column; align-items: center;
-        justify-content: space-evenly;
-        padding: 20px 25px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    .dest-logo { height: 240px; margin-bottom: 5px; object-fit: contain; }
-
-    .dest-nombre {
-        font-size: 56px; font-weight: 900; color: var(--dorado);
-        margin-bottom: 8px; text-transform: uppercase; text-align: center;
-        line-height: 1;
-    }
-
-    .dest-hora-box {
-        font-size: 80px; background-color: #f97316;
-        color: #ffffff; padding: 10px 80px; border-radius: 24px; font-weight: 900;
-        letter-spacing: 2px;
-    }
-
-    .dest-bolos { display: flex; justify-content: center; gap: 35px; margin-bottom: 10px; }
-    .dest-bolo-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-
-    .dest-bolo {
-        width: 240px; height: 240px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 130px; font-weight: 900; color: white;
-        background-color: #2563eb;
-        border: 6px solid #60a5fa;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    }
-
-    .dest-bolo-label {
-        font-size: 22px; font-weight: 900; color: var(--azul-oscuro);
-        text-transform: uppercase; background: var(--dorado);
-        padding: 6px 22px; border-radius: 10px;
-    }
-
-    .featured-tag {
-        background: rgba(255, 255, 255, 0.2); color: var(--blanco);
-        padding: 12px 35px; border-radius: 24px; font-weight: 900;
-        font-size: 30px; border: 2px solid rgba(255,255,255,0.4);
-        letter-spacing: 1px;
-    }
-
-    /* Panel lateral también más grande */
-    .side-panel { width: 620px; display: flex; flex-direction: column; gap: 12px; }
-
-    .side-row {
-        background: var(--blanco); border-radius: 20px; padding: 14px 18px;
-        display: flex; justify-content: space-between; align-items: center;
-        border-left: 12px solid var(--dorado);
-        box-shadow: 0 3px 10px rgba(0,0,0,0.2); flex: 1;
-    }
-
-    .side-left { display: flex; align-items: center; gap: 15px; }
-    .side-logo { height: 80px; object-fit: contain; }
-
-    .side-info { display: flex; flex-direction: column; }
-    .side-info .hora { color: var(--azul-oscuro); font-size: 32px; font-weight: 900; }
-    .side-info .fecha { color: var(--texto-gris); font-size: 16px; font-weight: 700; text-transform: uppercase; }
-
-    .side-bolos { display: flex; gap: 10px; }
-    .side-bolo-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-
-    .side-bolo {
-        width: 85px; height: 85px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 40px; font-weight: 900;
-    }
-    .side-bolo.hoy { background: #2563eb; color: white; }
-    .side-bolo.ayer { background: #ffffff; color: var(--azul-oscuro); border: 2px solid #cbd5e1; }
-
-    .side-bolo-label {
-        font-size: 12px; font-weight: 900; color: var(--texto-gris);
-        text-transform: uppercase; background: #e2e8f0; padding: 2px 8px; border-radius: 4px;
-    }
-
-    /* ADS / LIVE */
-    .ad-box { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; position: relative; }
-    .ad-box img, .ad-box video { width: 100%; height: 100%; object-fit: contain; }
-    .ad-box iframe { width: 100%; height: 100%; border: none; }
-
-    /* Seguro anti-desborde */
-    .card * { min-width: 0; min-height: 0; }
-</style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
-<div id="splash-screen">
-    <img src="nuevologo.png" id="splashLogo" class="splash-logo" alt="Bancas Kiko">
-    <div class="splash-text">INICIANDO PIZARRA</div>
-    <div class="splash-sub">CONECTANDO A FIREBASE...</div>
-</div>
-
-<div id="preloader-cache" style="position:absolute;width:1px;height:1px;opacity:0.01;overflow:hidden;bottom:0;left:0;pointer-events:none;"></div>
-
-<div id="canvas-master">
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="brand-area">
-            <img src="nuevologo.png" id="headerLogo" alt="Bancas Kiko">
-            <div class="brand-text">
-                <div class="brand-title">Bancas <span>Kiko</span></div>
-                <div class="brand-slogan">La confianza en tu jugada</div>
+    <header class="app-bar">
+        <div class="app-bar-profile">
+            <button class="app-hamburger-btn" id="btnHamburger" onclick="toggleMenuLateral()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <img src="nuevologo.png" alt="Kiko" class="app-logo">
+            <div class="app-user-info">
+                <h1 id="pageTitle">Identificación...</h1>
+                <span id="currentDate">--/--/----</span>
             </div>
         </div>
-        <div class="header-info">
-            <div class="header-clock" id="liveClock">00:00:00</div>
-            <div class="date-header">
-                <div class="main-date" id="currentDay">...</div>
-                <div class="sub-date" id="currentMonth">...</div>
+        <button class="app-logout-btn" onclick="cerrarSesion()">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenuLateral()"></div>
+    <aside class="menu-lateral" id="menuLateral">
+        <div class="menu-header">
+            <img src="nuevologo.png" alt="Kiko" class="menu-logo">
+            <div class="menu-user-info">
+                <h3 id="menuUserName">Invitado</h3>
+                <span id="menuUserRole">Sin sesión</span>
+            </div>
+        </div>
+        <nav class="menu-items" id="menuItems"></nav>
+        <div class="menu-footer">
+            <button class="menu-logout-btn" onclick="cerrarSesion(); toggleMenuLateral();">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <main class="app-body" id="contentArea">
+        <div class="mobile-loader">
+            <div class="spinner"></div>
+            <p>Conectando con la Central...</p>
+        </div>
+    </main>
+
+    <!-- MODAL LOGIN -->
+    <div id="modalLogin" class="mobile-modal">
+        <div class="bottom-sheet login-sheet">
+            <div class="sheet-handle"></div>
+            <img src="nuevologo.png" alt="Kiko" class="login-logo">
+            <h2>Acceso al Sistema</h2>
+            <p class="sheet-subtitle">Bancas Kiko · La confianza en tu jugada</p>
+
+            <div class="login-toggle-buttons">
+                <button class="tab-btn active" id="btnTabEmpleado" onclick="switchLoginTab('empleada')">🔑 Empleada</button>
+                <button class="tab-btn" id="btnTabAdmin" onclick="switchLoginTab('admin')">⚙️ Central Admin</button>
+            </div>
+
+            <div id="loginEmpleadoForm" class="login-form-pane">
+                <div class="input-group">
+                    <i class="fa-solid fa-store"></i>
+                    <input type="text" id="loginUsuario" placeholder="Usuario de Banca">
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="Contraseña">
+                </div>
+                <button class="mobile-btn btn-primary-filled" onclick="iniciarSesionEmpleado()">Iniciar Sesión Sucursal</button>
+                <p class="login-hint">Solicite sus credenciales al administrador</p>
+            </div>
+
+            <div id="loginAdminForm" class="login-form-pane hidden-pane">
+                <div class="input-group">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <input type="password" id="loginAdminPassword" placeholder="Clave Maestra Central">
+                </div>
+                <button class="mobile-btn btn-gold-filled" onclick="iniciarSesionAdmin()">Autenticar Administrador</button>
             </div>
         </div>
     </div>
 
-    <!-- TICKER -->
-    <div class="ticker-bar">
-        <div class="ticker-text" id="marqueeText">CARGANDO ANUNCIOS...</div>
-    </div>
-
-    <!-- VISTAS -->
-    <div id="view-grid" class="hidden">
-        <div class="grid-container" id="mainGrid"></div>
-    </div>
-
-    <div id="view-featured" class="hidden">
-        <div class="split-container">
-            <div class="split-main" id="featuredMain"></div>
-            <div class="side-panel" id="featuredSide"></div>
+    <!-- MODAL REGISTRAR (Préstamos/Comisiones/Central) -->
+    <div id="modalRegistrarTrans" class="mobile-modal hidden">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3 id="lblRegistrarModalTitulo">Registrar Movimiento</h3>
+                <button class="close-sheet" onclick="cerrarModal('modalRegistrarTrans')">&times;</button>
+            </div>
+            <div class="sheet-content">
+                <input type="hidden" id="registrarTipoMovimiento">
+                <label class="input-sublabel">🏦 Banca Destino</label>
+                <select id="registrarBanca" class="mobile-input">
+                    <option value="kiko1">Banca Kiko 1</option>
+                    <option value="kiko2">Banca Kiko 2</option>
+                    <option value="kiko3">Banca Kiko 3</option>
+                </select>
+                <div id="wrapperTipoPrestamo" class="hidden">
+                    <label class="input-sublabel">📌 Tipo de Préstamo</label>
+                    <select id="registrarTipoPrestamo" class="mobile-input">
+                        <option value="pinpo">PRÉSTAMO PINPO</option>
+                        <option value="jesus">PRÉSTAMO JESÚS</option>
+                    </select>
+                </div>
+                <label class="input-sublabel">💰 Monto RD$</label>
+                <input type="number" id="registrarMonto" class="mobile-input" placeholder="Monto Neto">
+                <label class="input-sublabel">📝 Nota o Concepto</label>
+                <input type="text" id="registrarNota" class="mobile-input" placeholder="Detalle del movimiento">
+                <label class="input-sublabel">📅 Fecha y Hora de Registro</label>
+                <input type="datetime-local" id="registrarFecha" class="mobile-input">
+                <button class="mobile-btn btn-primary-filled" onclick="guardarMovimientoRegistrar()">✅ Registrar Movimiento</button>
+            </div>
         </div>
     </div>
 
-    <!-- BRANDING -->
-    <div id="view-branding">
-        <img src="nuevologo.png" id="brandingLogo" class="branding-logo" alt="Bancas Kiko">
-        <div class="branding-title">Bancas <span>Kiko</span></div>
-        <div class="branding-slogan">LA CONFIANZA EN TU JUGADA</div>
-        <div class="branding-tag">🍀 ¡LA SUERTE ESTÁ DE TU LADO! 🍀</div>
+    <!-- MODAL RETIRAR -->
+    <div id="modalRetirarTrans" class="mobile-modal hidden">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3 id="lblRetirarModalTitulo">Retirar Movimiento</h3>
+                <button class="close-sheet" onclick="cerrarModal('modalRetirarTrans')">&times;</button>
+            </div>
+            <div class="sheet-content">
+                <input type="hidden" id="retirarTipoMovimiento">
+                <label class="input-sublabel">📋 Seleccione el movimiento a retirar</label>
+                <select id="retirarItemsList" class="mobile-input">
+                    <option value="">Cargando...</option>
+                </select>
+                <label class="input-sublabel">📅 Fecha y Hora de Retiro</label>
+                <input type="datetime-local" id="retirarFecha" class="mobile-input">
+                <button class="mobile-btn btn-danger" onclick="retirarMovimiento()">🗑️ Retirar Movimiento</button>
+            </div>
+        </div>
     </div>
 
-    <div id="view-ads" class="hidden">
-        <div class="ad-box" id="adDisplay"></div>
-    </div>
-
-    <div id="view-live" class="hidden">
-        <div class="ad-box" id="liveDisplay"></div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
-<script>
-    const firebaseConfig = { databaseURL: "https://pizarra-loteria-36ba5-default-rtdb.firebaseio.com/" };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    let SORTEOS = [];
-    let ANUNCIOS = [];
-    let LOGOS = {};
-    let modoNavidad = false;
-
-    let currentView = 77;
-    let gridPage = 0;
-    let adIndex = 0;
-    let rotationTimer = null;
-    let gridTimerInterval = null;
-    let enTransmisionVivo = false;
-    let sistemaIniciado = false;
-    let tiempoRotacionGlobal = 15000;
-    let usandoCache = false;
-    let isOnline = true;
-
-    const VIEW_NAMES = ['grid', 'featured', 'branding', 'ads', 'live'];
-    const _cacheImgs = [];
-
-    function aplicarModoNavidad(activo) {
-        modoNavidad = activo === true;
-        const logoSrc = modoNavidad ? 'nuevologo2.png' : 'nuevologo.png';
-        document.getElementById('splashLogo').src = logoSrc;
-        document.getElementById('headerLogo').src = logoSrc;
-        document.getElementById('brandingLogo').src = logoSrc;
-    }
-
-    function getAhoraRD() {
-        const partes = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'America/Santo_Domingo',
-            year: 'numeric', month: '2-digit', day: '2-digit',
-            hour: '2-digit', minute: '2-digit', second: '2-digit',
-            hour12: false
-        }).formatToParts(new Date());
-        const get = (t) => partes.find(p => p.type === t)?.value;
-        let h = parseInt(get('hour'));
-        if (h === 24) h = 0;
-        return {
-            year: parseInt(get('year')), month: parseInt(get('month')),
-            day: parseInt(get('day')), hours: h,
-            minutes: parseInt(get('minute')), seconds: parseInt(get('second'))
-        };
-    }
-
-    function getFormatDateRD(offset = 0) {
-        const rd = getAhoraRD();
-        const d = new Date(Date.UTC(rd.year, rd.month - 1, rd.day));
-        d.setUTCDate(d.getUTCDate() - offset);
-        return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-    }
-
-    function convertirHoraAminutos(horaStr) {
-        if (!horaStr) return 0;
-        const m = horaStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-        if (!m) return 0;
-        let h = parseInt(m[1]); const min = parseInt(m[2]);
-        const ap = m[3].toUpperCase();
-        if (ap === 'PM' && h !== 12) h += 12;
-        if (ap === 'AM' && h === 12) h = 0;
-        return h * 60 + min;
-    }
-
-    function getLogoByNombre(nombre) {
-        if (!nombre) return 'anguilla.png';
-        const n = nombre.toLowerCase();
-        if (n.includes('loteka')) return 'lotekalogo.png';
-        if (n.includes('real')) return 'logoreal.png';
-        return 'anguilla.png';
-    }
-
-    function convertirLinkGitHub(url) {
-        if (!url) return url;
-        if (url.includes('raw.githubusercontent.com')) return url;
-        if (url.includes('github.com') && url.includes('/blob/')) {
-            return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
-        }
-        return url;
-    }
-
-    function esVideoDirecto(url) {
-        if (!url) return false;
-        const u = url.toLowerCase();
-        return u.includes('.mp4') || u.includes('.webm') || u.includes('.ogg') || u.includes('.mov') || u.includes('raw.githubusercontent');
-    }
-
-    function guardarEnCache(clave, datos) {
-        try { localStorage.setItem(`kiko_${clave}`, JSON.stringify({ data: datos, t: Date.now() })); } catch {}
-    }
-    function obtenerDeCache(clave) {
-        try { const i = localStorage.getItem(`kiko_${clave}`); return i ? JSON.parse(i) : null; } catch { return null; }
-    }
-    function cargarDesdeCache() {
-        usandoCache = true;
-        const s = obtenerDeCache('sorteos');
-        if (s?.data?.length) SORTEOS = s.data;
-        const a = obtenerDeCache('anuncios');
-        if (a?.data?.length) ANUNCIOS = a.data.filter(x => x.activo !== false);
-        const t = obtenerDeCache('ticker');
-        if (t?.data) document.getElementById('marqueeText').innerText = t.data;
-    }
-
-    function procesarSorteosData(dataHoy, dataAyer) {
-        const out = [];
-        const rd = getAhoraRD();
-        const horaAct = rd.hours * 60 + rd.minutes;
-        if (!dataHoy || dataHoy.length === 0) return out;
-
-        dataHoy.forEach((sHoy, index) => {
-            if (!sHoy) return;
-            const m = (sHoy.hora || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-            let hSor = 0, mSor = 0;
-            if (m) {
-                hSor = parseInt(m[1]); mSor = parseInt(m[2]);
-                const ap = m[3].toUpperCase();
-                if (ap === 'PM' && hSor !== 12) hSor += 12;
-                if (ap === 'AM' && hSor === 12) hSor = 0;
-            }
-            const tieneHoy = sHoy.premios && sHoy.premios[0] !== "" && sHoy.premios[0] != null;
-            const minutosRestantes = (hSor * 60 + mSor) - horaAct;
-            const yaPaso = minutosRestantes <= -5;
-            const faltan20 = !tieneHoy && !yaPaso && minutosRestantes <= 20 && minutosRestantes > 0;
-
-            const s = {
-                hour: (sHoy.hora || '').replace(/(AM|PM)/, ' $1').trim(),
-                key: index,
-                nombre: sHoy.nombre || sHoy.name || sHoy.loteria || '',
-                minutosRestantes
-            };
-            if (tieneHoy) {
-                s.day = 'hoy'; s.date = 'HOY';
-                s.nums = [sHoy.premios[0], sHoy.premios[1], sHoy.premios[2]];
-                s.isWaiting = false; s.isProximo = false;
-            } else if (yaPaso) {
-                s.day = 'hoy'; s.date = 'HOY';
-                s.nums = null; s.isWaiting = true; s.isProximo = false;
-            } else {
-                const sAyer = Array.isArray(dataAyer) ? dataAyer.find(a => a && a.hora === sHoy.hora) : null;
-                s.day = 'ayer'; s.date = 'AYER';
-                s.nombre = sHoy.nombre || sAyer?.nombre || '';
-                s.nums = (sAyer?.premios?.[0] !== "" && sAyer?.premios?.[0] != null)
-                    ? [sAyer.premios[0], sAyer.premios[1], sAyer.premios[2]] : null;
-                s.isWaiting = false; s.isProximo = faltan20;
-            }
-            out.push(s);
-        });
-        return out;
-    }
-
-    function ordenarSorteosCronologicamente(arr) {
-        const hoy = arr.filter(s => s.day === 'hoy');
-        const ayer = arr.filter(s => s.day === 'ayer');
-        const ord = (a) => a.sort((x, y) => convertirHoraAminutos(x.hour) - convertirHoraAminutos(y.hour));
-        return [...ord(hoy), ...ord(ayer)];
-    }
-
-    function inicializarDatos() {
-        database.ref('web_kiko/modo_navidad').on('value', snap => {
-            aplicarModoNavidad(snap.val() === true);
-        });
-
-        database.ref('ticker').on('value', snap => {
-            const txt = snap.val() || 'BIENVENIDOS A BANCAS KIKO';
-            document.getElementById('marqueeText').innerText = txt;
-            guardarEnCache('ticker', txt);
-        });
-
-        database.ref('configuracion/tiempoPantalla').on('value', snap => {
-            if (snap.val()) tiempoRotacionGlobal = parseInt(snap.val()) * 1000;
-        });
-
-        database.ref('anunciosList').on('value', snap => {
-            ANUNCIOS = [];
-            if (snap.exists()) snap.forEach(child => {
-                const v = child.val();
-                if (v?.activo !== false && v?.url?.trim()) ANUNCIOS.push(v);
-            });
-            guardarEnCache('anuncios', ANUNCIOS);
-            if (adIndex >= ANUNCIOS.length) adIndex = 0;
-        });
-
-        const hoyStr = getFormatDateRD(0);
-        const ayerStr = getFormatDateRD(1);
-        database.ref(`sorteos/${hoyStr}`).on('value', snapHoy => {
-            const dataHoy = snapHoy.val() || [];
-            database.ref(`sorteos/${ayerStr}`).once('value', snapAyer => {
-                const dataAyer = snapAyer.val() || [];
-                const proc = procesarSorteosData(dataHoy, dataAyer);
-                if (proc.length > 0) {
-                    SORTEOS = ordenarSorteosCronologicamente(proc);
-                    guardarEnCache('sorteos', SORTEOS);
-                }
-                if (sistemaIniciado && !enTransmisionVivo) {
-                    if (currentView === 0) renderGrid();
-                    if (currentView === 88) renderFeatured();
-                }
-            });
-        });
-
-        database.ref('transmisionVivo').on('value', snap => {
-            if (!sistemaIniciado) return;
-            const live = snap.val();
-            if (live && live.activo === true) {
-                enTransmisionVivo = true;
-                cancelarRotacion();
-                clearInterval(gridTimerInterval);
-                mostrarVista('live');
-                const box = document.getElementById('liveDisplay');
-                const raw = live.url || '';
-                if (esVideoDirecto(raw)) {
-                    box.innerHTML = `<video src="${convertirLinkGitHub(raw)}" autoplay muted playsinline controls style="width:100%;height:100%;background:#000;"></video>`;
-                } else {
-                    let embed = raw.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/');
-                    if (embed.includes('?')) embed = embed.split('?')[0];
-                    box.innerHTML = `<iframe src="${embed}?autoplay=1&mute=1&controls=0&rel=0" allow="autoplay; encrypted-media" style="width:100%;height:100%;border:none;"></iframe>`;
-                }
-            } else if (enTransmisionVivo) {
-                enTransmisionVivo = false;
-                document.getElementById('liveDisplay').innerHTML = '';
-                currentView = 0; gridPage = 0;
-                mostrarVista('grid'); renderGrid();
-                programarRotacion(tiempoRotacionGlobal);
-            }
-        });
-    }
-
-    function mostrarVista(nombre) {
-        VIEW_NAMES.forEach(v => {
-            const el = document.getElementById('view-' + v);
-            if (el) el.classList.add('hidden');
-        });
-        const t = document.getElementById('view-' + nombre);
-        if (t) t.classList.remove('hidden');
-    }
-
-    function programarRotacion(ms) {
-        cancelarRotacion();
-        rotationTimer = setTimeout(rotateDisplay, Math.max(1000, ms));
-    }
-    function cancelarRotacion() {
-        if (rotationTimer) { clearTimeout(rotationTimer); rotationTimer = null; }
-    }
-
-    function rotateDisplay() {
-        if (enTransmisionVivo || !sistemaIniciado) return;
-        let nextTime = tiempoRotacionGlobal;
-        const totalPages = Math.max(1, Math.ceil(SORTEOS.length / 8));
-
-        if (currentView === 0) {
-            if (gridPage < totalPages - 1) {
-                gridPage++;
-                mostrarVista('grid'); renderGrid();
-            } else {
-                currentView = 88; gridPage = 0;
-                mostrarVista('featured'); renderFeatured();
-            }
-        } else if (currentView === 88) {
-            currentView = 77;
-            mostrarVista('branding');
-        } else if (currentView === 77) {
-            currentView = 99; adIndex = 0;
-            mostrarVista('ads');
-            nextTime = renderMediaAd();
-        } else if (currentView === 99) {
-            currentView = 0; gridPage = 0;
-            mostrarVista('grid'); renderGrid();
-        } else {
-            currentView = 0; gridPage = 0;
-            mostrarVista('grid'); renderGrid();
-        }
-        programarRotacion(nextTime);
-    }
-
-    function renderGrid() {
-        clearInterval(gridTimerInterval);
-        const grid = document.getElementById('mainGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
-        if (SORTEOS.length === 0) {
-            grid.innerHTML = `<div style="grid-column:1/-1; color:white; font-size:32px; font-weight:800; text-align:center; padding:50px;">ESPERANDO DATOS...</div>`;
-            return;
-        }
-        const start = gridPage * 8;
-        const items = SORTEOS.slice(start, start + 8);
-
-        items.forEach((s, idx) => {
-            const card = document.createElement('div');
-            card.className = `card ${s.isProximo || s.isWaiting ? 'proximo' : ''}`;
-
-            let claseFecha = s.day === 'hoy' ? '' : 'ayer';
-            let txtFecha = s.day === 'hoy' ? 'HOY' : 'AYER';
-            let boloClass = s.day === 'hoy' ? 'hoy' : 'ayer';
-            let timerHtml = '';
-
-            if (s.isWaiting) {
-                claseFecha = 'proximo-label'; txtFecha = 'ESPERANDO';
-                boloClass = 'esperando';
-                timerHtml = `<div class="card-timer esperando">⏳ ESPERANDO...</div>`;
-            } else if (s.isProximo) {
-                claseFecha = 'proximo-label'; txtFecha = '¡POR SALIR!';
-                boloClass = 'ayer';
-                timerHtml = `<div class="card-timer" id="gridTimer">⏱ ...</div>`;
-            }
-
-            const nums = s.isWaiting ? ['?','?','?'] : (s.nums || ['--','--','--']);
-
-            card.innerHTML = `
-                <div style="text-align:center; width:100%;">
-                    <img class="card-logo" src="${getLogoByNombre(s.nombre)}" onerror="this.src='anguilla.png'">
-                    <div class="card-nombre-hora">
-                        <span class="card-nombre">${s.nombre || 'Anguilla'}</span>
-                        <span class="card-hora-inline">${s.hour}</span>
+    <!-- MODAL CLIENTE -->
+    <div id="modalCliente" class="mobile-modal hidden">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3>👤 Ficha Maestra del Cliente</h3>
+                <button class="close-sheet" onclick="cerrarModal('modalCliente')">&times;</button>
+            </div>
+            <div class="sheet-content">
+                <input type="hidden" id="clienteId">
+                <label class="input-sublabel">📛 Nombre de la Cuenta</label>
+                <input type="text" id="clienteNombre" class="mobile-input">
+                <label class="input-sublabel">📱 Número de WhatsApp</label>
+                <input type="tel" id="clienteWhatsapp" class="mobile-input" placeholder="Ej: 1809XXXXXXX">
+                <label class="input-sublabel">🏦 Banca Operativa</label>
+                <select id="clienteBanca" class="mobile-input">
+                    <option value="kiko1">Banca Kiko 1</option>
+                    <option value="kiko2">Banca Kiko 2</option>
+                    <option value="kiko3">Banca Kiko 3</option>
+                </select>
+                <div class="input-row">
+                    <div>
+                        <label class="input-sublabel">💳 Deuda Balance (RD$)</label>
+                        <input type="number" id="clienteDeuda" class="mobile-input">
                     </div>
-                    <div class="card-fecha ${claseFecha}">${txtFecha}</div>
-                </div>
-                ${timerHtml}
-                <div class="bolos-container">
-                    <div class="bolo-wrapper"><div class="bolo ${boloClass}">${nums[0]}</div><div class="bolo-label">1ro</div></div>
-                    <div class="bolo-wrapper"><div class="bolo ${boloClass}">${nums[1]}</div><div class="bolo-label">2do</div></div>
-                    <div class="bolo-wrapper"><div class="bolo ${boloClass}">${nums[2]}</div><div class="bolo-label">3ro</div></div>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-
-        const prox = items.find(s => s.isProximo);
-        if (prox) iniciarGridTimer(prox.hour);
-    }
-
-    function iniciarGridTimer(hora) {
-        clearInterval(gridTimerInterval);
-        const el = document.getElementById('gridTimer');
-        if (!el) return;
-        const m = hora.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-        if (!m) return;
-        let hS = parseInt(m[1]); const mS = parseInt(m[2]);
-        const ap = m[3].toUpperCase();
-        if (ap === 'PM' && hS !== 12) hS += 12;
-        if (ap === 'AM' && hS === 12) hS = 0;
-
-        gridTimerInterval = setInterval(() => {
-            const rd = getAhoraRD();
-            const ahora = rd.hours * 3600 + rd.minutes * 60 + rd.seconds;
-            const sorteo = hS * 3600 + mS * 60;
-            const diff = sorteo - ahora;
-            if (diff <= 0) {
-                el.innerHTML = `⏳ ESPERANDO...`;
-                el.className = 'card-timer esperando';
-                return;
-            }
-            const mm = Math.floor(diff / 60);
-            const ss = diff % 60;
-            el.innerHTML = `⏱ Faltan ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-        }, 1000);
-    }
-
-    function generarPanelLateral(id) {
-        const jugados = SORTEOS.filter(s => s.nums?.length > 0);
-        const panel = document.getElementById(id);
-        if (!panel) return SORTEOS[0] || { hour: '--:--', date: 'HOY', nums: null, nombre: '' };
-        if (jugados.length === 0) {
-            panel.innerHTML = '<div style="color:var(--rojo); font-size:26px; font-weight:900; text-align:center;">NO HAY SORTEOS PREVIOS</div>';
-            return SORTEOS[0] || { hour: '--:--', date: 'HOY', nums: null, nombre: '' };
-        }
-        jugados.sort((a, b) => {
-            if (a.day === b.day) return convertirHoraAminutos(b.hour) - convertirHoraAminutos(a.hour);
-            return a.day === 'hoy' ? -1 : 1;
-        });
-        const last = jugados[0];
-        const hist = jugados.slice(1, 6);
-        panel.innerHTML = hist.map((s, idx) => {
-            const boloClass = s.day === 'hoy' ? 'hoy' : 'ayer';
-            return `<div class="side-row">
-                <div class="side-left">
-                    <img class="side-logo" src="${getLogoByNombre(s.nombre)}" onerror="this.src='anguilla.png'">
-                    <div class="side-info">
-                        <span class="hora">${s.hour}</span>
-                        <span class="fecha">${s.nombre ? s.nombre + ' · ' : ''}${s.date}</span>
+                    <div>
+                        <label class="input-sublabel">💰 Fondo Depósito (RD$)</label>
+                        <input type="number" id="clienteFondo" class="mobile-input">
                     </div>
                 </div>
-                <div class="side-bolos">
-                    <div class="side-bolo-wrapper"><div class="side-bolo ${boloClass}">${s.nums[0]}</div><div class="side-bolo-label">1ro</div></div>
-                    <div class="side-bolo-wrapper"><div class="side-bolo ${boloClass}">${s.nums[1]}</div><div class="side-bolo-label">2do</div></div>
-                    <div class="side-bolo-wrapper"><div class="side-bolo ${boloClass}">${s.nums[2]}</div><div class="side-bolo-label">3ro</div></div>
-                </div>
-            </div>`;
-        }).join('');
-        return last;
-    }
-
-    function renderFeatured() {
-        const last = generarPanelLateral('featuredSide');
-        const main = document.getElementById('featuredMain');
-        if (!main) return;
-        const esHoy = last.day === 'hoy';
-        main.innerHTML = `
-            <img class="dest-logo" src="${getLogoByNombre(last.nombre)}" onerror="this.src='anguilla.png'">
-            <div class="dest-nombre">${last.nombre || 'Anguilla'}</div>
-            <div class="dest-hora-box">${last.hour || '--:--'}</div>
-            <div class="dest-bolos">
-                <div class="dest-bolo-wrapper"><div class="dest-bolo">${last.nums ? last.nums[0] : '?'}</div><div class="dest-bolo-label">1ro</div></div>
-                <div class="dest-bolo-wrapper"><div class="dest-bolo">${last.nums ? last.nums[1] : '?'}</div><div class="dest-bolo-label">2do</div></div>
-                <div class="dest-bolo-wrapper"><div class="dest-bolo">${last.nums ? last.nums[2] : '?'}</div><div class="dest-bolo-label">3ro</div></div>
+                <p style="font-weight:700; font-size:11px; color:var(--texto-gris); margin:10px 0 4px;">📊 Bitácora de Transacciones</p>
+                <div id="historialTransaccionesCliente" class="summary-box" style="max-height:200px; overflow-y:auto; font-size:11px;"></div>
+                <button class="mobile-btn btn-primary-filled" onclick="guardarCliente()">💾 Actualizar Ficha</button>
             </div>
-            <div class="featured-tag">ÚLTIMO SORTEO · ${esHoy ? 'HOY' : 'AYER'}</div>`;
-    }
+        </div>
+    </div>
 
-    function renderMediaAd() {
-        const box = document.getElementById('adDisplay');
-        if (!box) return tiempoRotacionGlobal;
-        box.innerHTML = '';
-        const activos = ANUNCIOS.filter(ad => ad && ad.activo !== false && ad.url && ad.url.trim());
-        if (activos.length === 0) {
-            box.innerHTML = `<div style="color:white; font-size:60px; font-weight:800; text-align:center;">BANCAS KIKO</div>`;
-            return 6000;
-        }
-        if (adIndex >= activos.length) adIndex = 0;
-        const ad = activos[adIndex];
-        const url = ad.url.trim();
-        const urlP = convertirLinkGitHub(url);
+    <!-- MODAL DEUDA -->
+    <div id="modalDeuda" class="mobile-modal hidden">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3>💵 Procesar Ticket o Cobro</h3>
+                <button class="close-sheet" onclick="cerrarModal('modalDeuda')">&times;</button>
+            </div>
+            <div class="sheet-content">
+                <label class="input-sublabel">👤 Cliente Asignado</label>
+                <select id="deudaCliente" class="mobile-input"></select>
+                <label class="input-sublabel">🔄 Tipo de Movimiento</label>
+                <select id="deudaTipo" class="mobile-input">
+                    <option value="deuda">📝 Registrar Ticket de Venta (+)</option>
+                    <option value="pago">💸 Registrar Cobro / Abono (-)</option>
+                </select>
+                <label class="input-sublabel">💰 Monto en Pesos RD$</label>
+                <input type="number" id="deudaMonto" class="mobile-input" placeholder="Monto">
+                <label class="input-sublabel">📝 Nota (Ej: Ticket #7810)</label>
+                <input type="text" id="deudaConcepto" class="mobile-input" placeholder="Descripción">
+                <button class="mobile-btn btn-success-filled" onclick="guardarDeuda()">💾 Guardar Operación</button>
+            </div>
+        </div>
+    </div>
 
-        if (esVideoDirecto(url)) {
-            box.innerHTML = `<video src="${urlP}" autoplay muted playsinline preload="auto" style="width:100%;height:100%;object-fit:contain;background:#000;"></video>`;
-        } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            let embed = url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/');
-            if (embed.includes('?')) embed = embed.split('?')[0];
-            box.innerHTML = `<iframe src="${embed}?autoplay=1&mute=1&controls=0&rel=0" allow="autoplay; encrypted-media" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>`;
-        } else {
-            box.innerHTML = `<img src="${urlP}" loading="eager" style="width:100%;height:100%;object-fit:contain;background:#000;" alt="Anuncio">`;
-            const img = box.querySelector('img');
-            if (img) img.onerror = () => {
-                box.innerHTML = `<div style="color:white; font-size:60px; font-weight:800;">BANCAS KIKO</div>`;
-            };
-        }
-        const t = (parseInt(ad.tiempo) || 15) * 1000;
-        adIndex++;
-        return t;
-    }
+    <!-- MODAL RECORDATORIO -->
+    <div id="modalRecordatorio" class="mobile-modal hidden">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3>💬 Despacho de Mensajería</h3>
+                <button class="close-sheet" onclick="cerrarModal('modalRecordatorio')">&times;</button>
+            </div>
+            <div class="sheet-content">
+                <textarea id="recordatorioMensaje" class="mobile-textarea" rows="6" readonly></textarea>
+                <input type="hidden" id="recordatorioTelefono">
+                <div class="input-row">
+                    <button class="mobile-btn btn-gold-filled" style="margin:0;" onclick="copiarMensajePortapapeles()">
+                        <i class="fa-solid fa-copy"></i> Copiar Texto
+                    </button>
+                    <button class="mobile-btn btn-whatsapp" style="margin:0;" onclick="enviarRecordatorio()">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    function updateDateTime() {
-        const rd = getAhoraRD();
-        const hrs = rd.hours % 12 || 12;
-        document.getElementById('liveClock').innerText =
-            `${hrs}:${String(rd.minutes).padStart(2,'0')}:${String(rd.seconds).padStart(2,'0')} ${rd.hours >= 12 ? 'PM' : 'AM'}`;
-        const dias = ['DOMINGO','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO'];
-        const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-        const f = new Date(Date.UTC(rd.year, rd.month - 1, rd.day));
-        document.getElementById('currentDay').innerText = `${dias[f.getUTCDay()]} ${rd.day}`;
-        document.getElementById('currentMonth').innerText = `${meses[rd.month - 1]} ${rd.year}`;
-    }
-
-    let wakeLock = null;
-    async function activarWakeLock() {
-        try {
-            if ('wakeLock' in navigator) {
-                wakeLock = await navigator.wakeLock.request('screen');
-                document.addEventListener('visibilitychange', async () => {
-                    if (wakeLock !== null && document.visibilityState === 'visible') {
-                        try { wakeLock = await navigator.wakeLock.request('screen'); } catch {}
-                    }
-                });
-            }
-        } catch {}
-    }
-
-    function dimensionarPantalla() {
-        const w = window.innerWidth, h = window.innerHeight;
-        let scale = Math.min(w / 1920, h / 1080);
-        if (scale > 1.6) scale = 1.6;
-        document.getElementById('canvas-master').style.transform =
-            `translate(-50%, -50%) scale(${scale})`;
-    }
-
-    window.onload = () => {
-        ['nuevologo.png', 'nuevologo2.png', 'anguilla.png', 'logoreal.png', 'lotekalogo.png'].forEach(src => {
-            const i = new Image(); i.decoding = 'async'; i.src = src; _cacheImgs.push(i);
-        });
-        dimensionarPantalla();
-        window.addEventListener('resize', dimensionarPantalla);
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
-        cargarDesdeCache();
-        inicializarDatos();
-        activarWakeLock();
-
-        setTimeout(() => {
-            const s = document.getElementById('splash-screen');
-            s.style.opacity = '0'; s.style.visibility = 'hidden';
-            sistemaIniciado = true;
-            currentView = 77;
-            mostrarVista('branding');
-
-            setTimeout(() => {
-                currentView = 0; gridPage = 0;
-                mostrarVista('grid'); renderGrid();
-                programarRotacion(tiempoRotacionGlobal);
-            }, 5000);
-        }, 1500);
-    };
-</script>
+    <script src="app.js"></script>
 </body>
 </html>
